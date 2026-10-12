@@ -72,7 +72,8 @@
     "lint": "eslint -c eslint.config.mjs .",
     "translate": "translate-adapter",
     "release": "release-script",
-    "dev-server": "dev-server"
+    "dev-server": "dev-server",
+    "probe": "ts-node --transpile-only tools/probe.ts"
   },
   "bugs": {
     "url": "https://github.com/Sven-83/ioBroker.melcloudhome/issues"
