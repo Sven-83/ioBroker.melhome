@@ -10,7 +10,8 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - Autor: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
 - Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
-- **Nächster Schritt:** Phase 3 (Objektbaum & Steuerung).
+- Phase 3 umgesetzt und getestet (nur gegen Fakes und echte Testdaten). Live-Test mit dem dev-server steht noch aus.
+- **Nächster Schritt:** Live-Test Phase 3 (dev-server), danach Phase 4 (WebSocket).
 - Offen bei Sven:
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
@@ -40,12 +41,17 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Lesender Testlauf mit Svens Account, echte anonymisierte Antworten als Fixtures (`test/fixtures/live/`), Parser ohne Warnungen
 
 ## Phase 3 – Objektbaum & Steuerung (ATA)
-- ☐ `devices.<uuid>.info.*` (Raumname aus der App, online, Fehler, Raumtemp, Außentemp, WLAN-Signal – kein Modell)
-- ☐ `devices.<uuid>.control.*` (power, mode, targetTemp, fanSpeed, vaneHorizontal, vaneVertical, standby, offTimer). Seitenlamelle nur bei `supportsWideVane` steuerbar (Wohnraum ja, zweites Gerät nein)
-- ☐ `devices.<uuid>.energy.*` (falls verfügbar)
-- ☐ Neutrale Wertebereiche via `mapping.ts`, `states`-Definitionen für Enums
-- ☐ Command-Queue mit Debounce (~800 ms), optimistisches ack-Handling
-- ☐ Abschalt-Timer serverseitig (`control.offTimer` in Minuten, Restzeit-State), überlebt Adapter-Neustart
+- ☑ `devices.<uuid>` (Typ device, statusStates online/error), Kanäle info, control, energy, capabilities. Objekt-IDs aus der UUID.
+- ☑ `info.*`: name, building, isGuest, deviceOnline, hasError, errorCode, roomTemp, outdoorTemp(+Time), actualFanSpeed, wifiSignal, lastUpdate
+- ☑ `control.*`: power, mode, targetTemp, fanSpeed, vaneVerticalDirection, vaneHorizontalDirection (nur bei `supportsWideVane` schreibbar), standby (nur bei `hasStandby`), offTimer, offTimerRemaining, offTimerEnd
+- ☑ `energy.*`: total (eigener Zähler, Stand in `native.energyTracker` des Geräts), lastHour, today
+- ☑ `mapping.ts`: Dashboard-Codes, `common.states` nach Capabilities, Temperaturgrenzen je Modus. Labels englisch, weil `common.states` nicht übersetzbar ist.
+- ☑ Command-Queue: 800 ms Debounce je Gerät, Zusammenführen, Einschalten immer mit Modus, Lamellen je eigener Request, 1,5 s Abstand, Temperatur geklemmt
+- ☑ Optimistische Anzeige: Wert wird nach Annahme mit ack=true gesetzt und bis zu 2 min gegen abweichende `/context`-Werte gehalten. Solange der Befehl wartet, wird nichts bestätigt. Bei Fehler wird der gemeldete Wert zurückgeschrieben.
+- ☑ Abschalt-Timer im Adapter (max. 360 min). Die Endzeit steht in `offTimerEnd` und übersteht einen Neustart. Ist er während der Pause abgelaufen, wird bis 30 min später noch ausgeschaltet.
+- ☑ Telemetrie alle 30 min: Energie, WLAN-Signal, Außentemperatur. Fehler beeinflussen `info.connection` nicht.
+- ☑ Unit-Tests (134 gesamt), u. a. Objektbaum aus den echten Daten, Befehlsfluss, Timer-Neustart
+- ☐ Live-Test mit dem dev-server: erst nur lesen, dann Befehle **nach OK von Sven**
 
 ## Phase 4 – Echtzeit
 - ☐ WebSocket-Push, Heartbeat, Reconnect mit Backoff

@@ -339,6 +339,30 @@ export class ManualScheduler {
         timer.callback();
         await settle(() => this.pending.length > 0);
     }
+
+    /**
+     * Runs the first pending timer with the given delay and lets the triggered work finish.
+     *
+     * @param ms - Delay the timer was scheduled with
+     */
+    public async run(ms: number): Promise<void> {
+        const index = this.pending.findIndex(t => t.ms === ms);
+        if (index < 0) {
+            throw new Error(`No timer with ${ms} ms pending (pending: ${this.pending.map(t => t.ms).join(', ')})`);
+        }
+        const [timer] = this.pending.splice(index, 1);
+        timer.callback();
+        await settle();
+    }
+
+    /**
+     * True if a timer with this delay is pending.
+     *
+     * @param ms - Delay
+     */
+    public has(ms: number): boolean {
+        return this.pending.some(t => t.ms === ms);
+    }
 }
 
 /**

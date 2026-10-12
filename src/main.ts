@@ -6,9 +6,12 @@
 import * as utils from '@iobroker/adapter-core';
 import { AuthClient, TokenManager } from './lib/api/auth';
 import { MelCloudHomeClient } from './lib/api/client';
-import { ConnectionManager } from './lib/api/connection';
+import { ConnectionManager, type Scheduler } from './lib/api/connection';
+import { describeError } from './lib/api/errors';
 import { HttpTransport } from './lib/api/http';
 import type { UserContext } from './lib/api/types';
+import { AtaDevices, type AdapterPort } from './lib/devices/ata';
+import { TelemetryPoller } from './lib/devices/telemetry';
 
 /** Minimum REST polling interval in seconds (rate limit protection) */
 const MIN_POLL_INTERVAL_S = 60;
@@ -17,8 +20,9 @@ const MAX_POLL_INTERVAL_S = 3600;
 
 class Melcloudhome extends utils.Adapter {
     private http: HttpTransport | undefined;
-    private client: MelCloudHomeClient | undefined;
     private connection: ConnectionManager | undefined;
+    private devices: AtaDevices | undefined;
+    private telemetry: TelemetryPoller | undefined;
     private knownUnitCount: number | undefined;
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
@@ -55,27 +59,65 @@ class Melcloudhome extends utils.Adapter {
         }
         pollInterval = Math.min(Math.round(pollInterval), MAX_POLL_INTERVAL_S);
 
-        this.http = new HttpTransport();
-        const tokens = new TokenManager(new AuthClient(this.http), { email, password }, this.log);
-        this.client = new MelCloudHomeClient({ http: this.http, tokens, log: this.log });
+        const scheduler: Scheduler = {
+            setTimeout: (callback, ms) => this.setTimeout(callback, ms),
+            clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
+        };
+        const http = new HttpTransport();
+        this.http = http;
+        const tokens = new TokenManager(new AuthClient(http), { email, password }, this.log);
+        const client = new MelCloudHomeClient({ http, tokens, log: this.log });
+
+        await this.extendObjectAsync('devices', {
+            type: 'folder',
+            common: { name: { en: 'Devices', de: 'Geräte' } },
+            native: {},
+        });
+        this.devices = new AtaDevices({
+            port: this.createPort(),
+            client,
+            log: this.log,
+            scheduler,
+            sleep: ms => http.abortableSleep(ms),
+            requestRefresh: () => this.connection?.requestRefresh(),
+        });
+        await this.devices.restoreTimers();
+
+        this.telemetry = new TelemetryPoller({ source: client, sink: this.devices, scheduler, log: this.log });
+
         this.connection = new ConnectionManager({
-            source: this.client,
+            source: client,
             log: this.log,
             pollIntervalMs: pollInterval * 1000,
-            scheduler: {
-                setTimeout: (callback, ms) => this.setTimeout(callback, ms),
-                clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
-            },
+            scheduler,
             onConnectionChange: async connected => {
                 await this.setState('info.connection', connected, true);
             },
             onContext: context => this.onContext(context),
         });
 
+        this.subscribeStates('devices.*.control.*');
         this.log.info(
             `Starting (polling every ${pollInterval} s, real-time ${this.config.realtime ? 'enabled' : 'disabled'})`,
         );
         this.connection.start();
+    }
+
+    /** Adapter functions used by the device layer */
+    private createPort(): AdapterPort {
+        return {
+            namespace: this.namespace,
+            extendObject: async (id, obj) => {
+                await this.extendObjectAsync(id, obj);
+            },
+            getObject: id => this.getObjectAsync(id),
+            setState: async (id, val, ack) => {
+                await this.setStateAsync(id, val, ack);
+            },
+            getState: id => this.getStateAsync(id),
+            getStates: async pattern => (await this.getStatesAsync(pattern)) ?? {},
+            sanitizeId: id => id.replace(this.FORBIDDEN_CHARS, '_'),
+        };
     }
 
     /**
@@ -83,7 +125,7 @@ class Melcloudhome extends utils.Adapter {
      *
      * @param context - Parsed user context
      */
-    private onContext(context: UserContext): void {
+    private async onContext(context: UserContext): Promise<void> {
         if (context.ataUnits.length !== this.knownUnitCount) {
             this.knownUnitCount = context.ataUnits.length;
             this.log.info(`Found ${context.ataUnits.length} air-to-air unit(s)`);
@@ -91,7 +133,8 @@ class Melcloudhome extends utils.Adapter {
                 this.log.info(`Ignoring ${context.atwUnitCount} air-to-water unit(s) - not supported yet`);
             }
         }
-        // TODO Phase 3: create/update the object tree from context.ataUnits
+        await this.devices?.update(context);
+        this.telemetry?.setUnits(context.ataUnits);
     }
 
     /**
@@ -102,6 +145,8 @@ class Melcloudhome extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             this.connection?.stop();
+            this.telemetry?.stop();
+            this.devices?.stop();
             this.http?.abort();
             void this.setState('info.connection', false, true);
             callback();
@@ -118,11 +163,12 @@ class Melcloudhome extends utils.Adapter {
      * @param state - State object
      */
     private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-        if (!state || state.ack) {
+        if (!state || state.ack || !this.devices) {
             return;
         }
-        // TODO Phase 3: route control commands to the command queue
-        this.log.debug(`Command for ${id} ignored - control not implemented yet`);
+        this.devices.handleCommand(id, state).catch(error => {
+            this.log.error(`Handling command ${id} failed: ${describeError(error)}`);
+        });
     }
 }
 

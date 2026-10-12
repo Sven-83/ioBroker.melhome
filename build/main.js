@@ -25,13 +25,17 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_auth = require("./lib/api/auth");
 var import_client = require("./lib/api/client");
 var import_connection = require("./lib/api/connection");
+var import_errors = require("./lib/api/errors");
 var import_http = require("./lib/api/http");
+var import_ata = require("./lib/devices/ata");
+var import_telemetry = require("./lib/devices/telemetry");
 const MIN_POLL_INTERVAL_S = 60;
 const MAX_POLL_INTERVAL_S = 3600;
 class Melcloudhome extends utils.Adapter {
   http;
-  client;
   connection;
+  devices;
+  telemetry;
   knownUnitCount;
   constructor(options = {}) {
     super({
@@ -64,33 +68,74 @@ class Melcloudhome extends utils.Adapter {
       pollInterval = MIN_POLL_INTERVAL_S;
     }
     pollInterval = Math.min(Math.round(pollInterval), MAX_POLL_INTERVAL_S);
-    this.http = new import_http.HttpTransport();
-    const tokens = new import_auth.TokenManager(new import_auth.AuthClient(this.http), { email, password }, this.log);
-    this.client = new import_client.MelCloudHomeClient({ http: this.http, tokens, log: this.log });
+    const scheduler = {
+      setTimeout: (callback, ms) => this.setTimeout(callback, ms),
+      clearTimeout: (handle) => this.clearTimeout(handle)
+    };
+    const http = new import_http.HttpTransport();
+    this.http = http;
+    const tokens = new import_auth.TokenManager(new import_auth.AuthClient(http), { email, password }, this.log);
+    const client = new import_client.MelCloudHomeClient({ http, tokens, log: this.log });
+    await this.extendObjectAsync("devices", {
+      type: "folder",
+      common: { name: { en: "Devices", de: "Ger\xE4te" } },
+      native: {}
+    });
+    this.devices = new import_ata.AtaDevices({
+      port: this.createPort(),
+      client,
+      log: this.log,
+      scheduler,
+      sleep: (ms) => http.abortableSleep(ms),
+      requestRefresh: () => {
+        var _a2;
+        return (_a2 = this.connection) == null ? void 0 : _a2.requestRefresh();
+      }
+    });
+    await this.devices.restoreTimers();
+    this.telemetry = new import_telemetry.TelemetryPoller({ source: client, sink: this.devices, scheduler, log: this.log });
     this.connection = new import_connection.ConnectionManager({
-      source: this.client,
+      source: client,
       log: this.log,
       pollIntervalMs: pollInterval * 1e3,
-      scheduler: {
-        setTimeout: (callback, ms) => this.setTimeout(callback, ms),
-        clearTimeout: (handle) => this.clearTimeout(handle)
-      },
+      scheduler,
       onConnectionChange: async (connected) => {
         await this.setState("info.connection", connected, true);
       },
       onContext: (context) => this.onContext(context)
     });
+    this.subscribeStates("devices.*.control.*");
     this.log.info(
       `Starting (polling every ${pollInterval} s, real-time ${this.config.realtime ? "enabled" : "disabled"})`
     );
     this.connection.start();
+  }
+  /** Adapter functions used by the device layer */
+  createPort() {
+    return {
+      namespace: this.namespace,
+      extendObject: async (id, obj) => {
+        await this.extendObjectAsync(id, obj);
+      },
+      getObject: (id) => this.getObjectAsync(id),
+      setState: async (id, val, ack) => {
+        await this.setStateAsync(id, val, ack);
+      },
+      getState: (id) => this.getStateAsync(id),
+      getStates: async (pattern) => {
+        var _a;
+        return (_a = await this.getStatesAsync(pattern)) != null ? _a : {};
+      },
+      sanitizeId: (id) => id.replace(this.FORBIDDEN_CHARS, "_")
+    };
   }
   /**
    * Receives every successfully fetched /context.
    *
    * @param context - Parsed user context
    */
-  onContext(context) {
+  async onContext(context) {
+    var _a, _b;
     if (context.ataUnits.length !== this.knownUnitCount) {
       this.knownUnitCount = context.ataUnits.length;
       this.log.info(`Found ${context.ataUnits.length} air-to-air unit(s)`);
@@ -98,6 +143,8 @@ class Melcloudhome extends utils.Adapter {
         this.log.info(`Ignoring ${context.atwUnitCount} air-to-water unit(s) - not supported yet`);
       }
     }
+    await ((_a = this.devices) == null ? void 0 : _a.update(context));
+    (_b = this.telemetry) == null ? void 0 : _b.setUnits(context.ataUnits);
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
@@ -105,10 +152,12 @@ class Melcloudhome extends utils.Adapter {
    * @param callback - Callback function
    */
   onUnload(callback) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
       (_a = this.connection) == null ? void 0 : _a.stop();
-      (_b = this.http) == null ? void 0 : _b.abort();
+      (_b = this.telemetry) == null ? void 0 : _b.stop();
+      (_c = this.devices) == null ? void 0 : _c.stop();
+      (_d = this.http) == null ? void 0 : _d.abort();
       void this.setState("info.connection", false, true);
       callback();
     } catch (error) {
@@ -123,10 +172,12 @@ class Melcloudhome extends utils.Adapter {
    * @param state - State object
    */
   onStateChange(id, state) {
-    if (!state || state.ack) {
+    if (!state || state.ack || !this.devices) {
       return;
     }
-    this.log.debug(`Command for ${id} ignored - control not implemented yet`);
+    this.devices.handleCommand(id, state).catch((error) => {
+      this.log.error(`Handling command ${id} failed: ${(0, import_errors.describeError)(error)}`);
+    });
   }
 }
 if (require.main !== module) {
