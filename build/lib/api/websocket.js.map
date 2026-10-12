@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/api/websocket.ts"],
+  "sourcesContent": ["/*\n * WebSocket push connection, heartbeat, reconnect, fallback signal. Implemented in Phase 4.\n */\n\nexport {};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

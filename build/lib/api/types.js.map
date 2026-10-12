@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/api/types.ts"],
+  "sourcesContent": ["/*\n * API types and defensive schema validation. Implemented in Phase 2.\n */\n\nexport {};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

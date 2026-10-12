@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/devices/atw.ts"],
+  "sourcesContent": ["/*\n * Air-to-Water devices (heat pumps). Not part of v1 - placeholder to keep the architecture open.\n */\n\nexport {};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

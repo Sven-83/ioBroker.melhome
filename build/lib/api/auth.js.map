@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/api/auth.ts"],
+  "sourcesContent": ["/*\n * Login, token/session refresh, re-login with backoff. Implemented in Phase 2 (see docs/api.md).\n */\n\nexport {};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

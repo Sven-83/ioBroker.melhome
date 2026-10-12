@@ -1,0 +1,10 @@
+{
+    "MELCloud Home account": "MELCloud Home account",
+    "E-mail": "E-mail",
+    "Password": "Password",
+    "Connection": "Connection",
+    "Real-time updates (WebSocket)": "Real-time updates (WebSocket)",
+    "Polling is used as fallback if the real-time connection fails": "Polling is used as fallback if the real-time connection fails",
+    "Polling interval": "Polling interval",
+    "Seconds, minimum 60": "Seconds, minimum 60"
+}

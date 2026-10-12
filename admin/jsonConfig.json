@@ -1,0 +1,62 @@
+{
+    "i18n": true,
+    "type": "panel",
+    "items": {
+        "_headerAccount": {
+            "type": "header",
+            "text": "MELCloud Home account",
+            "size": 2
+        },
+        "email": {
+            "type": "text",
+            "label": "E-mail",
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "password": {
+            "type": "password",
+            "label": "Password",
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "_headerConnection": {
+            "type": "header",
+            "text": "Connection",
+            "size": 2,
+            "newLine": true
+        },
+        "realtime": {
+            "type": "checkbox",
+            "label": "Real-time updates (WebSocket)",
+            "help": "Polling is used as fallback if the real-time connection fails",
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "pollInterval": {
+            "type": "number",
+            "label": "Polling interval",
+            "help": "Seconds, minimum 60",
+            "min": 60,
+            "max": 3600,
+            "step": 1,
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        }
+    }
+}

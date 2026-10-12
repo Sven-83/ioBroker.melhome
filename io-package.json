@@ -1,0 +1,124 @@
+{
+    "common": {
+        "name": "melcloudhome",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial development",
+                "de": "Erste Entwicklungsversion",
+                "ru": "initial development",
+                "pt": "initial development",
+                "nl": "initial development",
+                "fr": "initial development",
+                "it": "initial development",
+                "es": "initial development",
+                "pl": "initial development",
+                "uk": "initial development",
+                "zh-cn": "initial development"
+            }
+        },
+        "titleLang": {
+            "en": "MELCloud Home",
+            "de": "MELCloud Home",
+            "ru": "MELCloud Home",
+            "pt": "MELCloud Home",
+            "nl": "MELCloud Home",
+            "fr": "MELCloud Home",
+            "it": "MELCloud Home",
+            "es": "MELCloud Home",
+            "pl": "MELCloud Home",
+            "uk": "MELCloud Home",
+            "zh-cn": "MELCloud Home"
+        },
+        "desc": {
+            "en": "Control Mitsubishi Electric air conditioners via MELCloud Home",
+            "de": "Mitsubishi-Electric-Klimageräte über MELCloud Home steuern",
+            "ru": "Управляйте кондиционерами Mitsubishi Electric через MELCloud Home",
+            "pt": "Controle os aparelhos de ar condicionado da Mitsubishi Electric através do MELCloud Home",
+            "nl": "Bedien Mitsubishi Electric airconditioners via MELCloud Home",
+            "fr": "Contrôler les climatiseurs Mitsubishi Electric via MELCloud Home",
+            "it": "Controlla i condizionatori Mitsubishi Electric tramite MELCloud Home",
+            "es": "Controle los aires acondicionados Mitsubishi Electric a través de MELCloud Home",
+            "pl": "Steruj klimatyzatorami Mitsubishi Electric za pośrednictwem MELCloud Home",
+            "uk": "Керуйте кондиціонерами Mitsubishi Electric через MELCloud Home",
+            "zh-cn": "通过 MELCloud Home 控制三菱电机空调"
+        },
+        "authors": [
+            "Sven-83 <svmorgen@gmx.de>"
+        ],
+        "keywords": [
+            "melcloud",
+            "melcloud home",
+            "mitsubishi",
+            "mitsubishi electric",
+            "air conditioner",
+            "climate"
+        ],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "melcloudhome.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.melcloudhome/main/admin/melcloudhome.png",
+        "readme": "https://github.com/Sven-83/ioBroker.melcloudhome/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "climate-control",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "push",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "email": "",
+        "password": "",
+        "pollInterval": 60,
+        "realtime": true
+    },
+    "encryptedNative": [
+        "password"
+    ],
+    "protectedNative": [
+        "email",
+        "password"
+    ],
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Connected to MELCloud Home",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
+}

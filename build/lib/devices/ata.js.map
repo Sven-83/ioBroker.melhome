@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/devices/ata.ts"],
+  "sourcesContent": ["/*\n * Air-to-Air devices (air conditioners). Implemented in Phase 3.\n */\n\nexport {};\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}
