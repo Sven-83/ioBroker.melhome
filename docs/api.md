@@ -490,12 +490,25 @@ minimalen Änderungen weiterläuft.
 
 ---
 
-## 9. Offene Punkte für die Verifikation mit Svens Account
+## 9. Verifikation mit Svens Account
 
-- Liefert `/context` bei MSZ-AY50/AY15 `supportsWideVane`/`hasAirDirection` so, dass die horizontale
-  Lamelle steuerbar ist? (MSZ-AY hat je nach Variante nur manuelle Seitenlamellen.)
-- Bietet die offizielle App für die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle an (→ Code 8)?
-- `SetFanSpeed`/`VaneVerticalDirection`: Ziffern oder Wörter in `/context`?
-- Liefert eine der beiden Inneneinheiten Energiedaten (Multi-Split-Buchung)?
-- Tatsächliche `expires_in` des Access-Tokens.
-- Wird beim WS-Echo für vertikales Swing wirklich `6` gesendet?
+Lesender Testlauf am 2026-10-12 mit `tools/probe.ts` (nur GET, kein PUT): 2× MSZ-AY an MXZ-3F54VF4.
+Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/live-fixtures.test.ts`.
+
+| Frage | Ergebnis |
+|---|---|
+| Login-Flow (PAR → Cognito → Callback → Token) | ✅ funktioniert wie beschrieben, Cognito-Normalfall (keine Abkürzung) |
+| `expires_in` des Access-Tokens | **3600 s** |
+| `SetFanSpeed` / `VaneVerticalDirection` in `/context`: Ziffern oder Wörter? | **Wörter** (`Three`, `Auto`, `Swing`). Die Ziffern-Normalisierung bleibt als Absicherung. |
+| `supportsWideVane` / `hasAirDirection` | `hasAirDirection=true` bei beiden. `supportsWideVane` ist **je Gerät verschieden**: Wohnraum-Gerät `true` (Seitenlamelle steht auf `Swing`), zweites Gerät `false` (`Centre`). Steuerbarkeit der Seitenlamelle also je Gerät aus der Capability ableiten. |
+| Split-/Wide-Einstellung (Code 8) | in den Daten **kein** Wert dafür. Endgültig erst mit dem Blick in die offizielle App (Sven). |
+| Energie bei Multi-Split | **beide** Inneneinheiten liefern Stundenwerte (Auflösung 100 Wh). `isEnergyUsageCompatible` ist trotzdem `false` – nicht auswerten. |
+| `hasStandby` | `true` bei beiden (Referenz-Default war `false`) → `control.standby` anlegen |
+| `rssi` in `/context` veraltet? | **ja**: `/context` -30, Telemetrie -44/-42 dBm |
+| Außentemperatur | ✅ Antwort ist eine **Liste** mit einem Report; Dataset-`id` `outside_temperature`. Echte Messpunkte alle ~10 min (Sekunde ≠ 0), Ortszeit des Geräts. Der Server rundet `from` auf Mitternacht (Ortszeit) ab. |
+| WS-Echo für vertikales Swing (`6`?) | **offen** – Testlauf ohne WebSocket. Nachholen mit `PROBE_WS_SECONDS=120`. |
+
+Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
+(`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),
+`frostProtection`/`overheatProtection` als Objekte `{active, enabled, min, max}`, Zeitpläne mit **kleingeschriebenen**
+Wörtern (`cool`, `swing`, `five`).

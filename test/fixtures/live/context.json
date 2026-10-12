@@ -1,0 +1,214 @@
+{
+    "id": "00000000-0000-4000-8000-000000000001",
+    "firstname": "Test",
+    "lastname": "User",
+    "email": "user@example.invalid",
+    "language": "de",
+    "country": "DE",
+    "numberOfDevicesAllowed": 10,
+    "numberOfBuildingsAllowed": 2,
+    "numberOfGuestUsersAllowedPerUnit": 5,
+    "numberOfGuestDevicesAllowed": 10,
+    "buildings": [
+        {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "name": "Home",
+            "timezone": "Europe/Berlin",
+            "airToAirUnits": [
+                {
+                    "unitSettings": null,
+                    "schedule": [],
+                    "scheduleEnabled": true,
+                    "connectedInterfaceIdentifier": "REDACTED",
+                    "capabilities": {
+                        "isMultiSplitSystem": true,
+                        "isLegacyDevice": false,
+                        "hasStandby": true,
+                        "hasCoolOperationMode": true,
+                        "hasHeatOperationMode": true,
+                        "hasAutoOperationMode": true,
+                        "hasDryOperationMode": true,
+                        "hasAutomaticFanSpeed": true,
+                        "hasAirDirection": true,
+                        "hasSwing": true,
+                        "hasExtendedTemperatureRange": true,
+                        "hasEnergyConsumedMeter": true,
+                        "numberOfFanSpeeds": 5,
+                        "minTempCoolDry": 16,
+                        "maxTempCoolDry": 31,
+                        "minTempHeat": 10,
+                        "maxTempHeat": 31,
+                        "minTempAutomatic": 16,
+                        "maxTempAutomatic": 31,
+                        "hasDemandSideControl": true,
+                        "hasHalfDegreeIncrements": true,
+                        "supportsWideVane": true
+                    },
+                    "frostProtection": {
+                        "active": false,
+                        "enabled": true,
+                        "min": 8,
+                        "max": 10
+                    },
+                    "overheatProtection": {
+                        "active": false,
+                        "enabled": true,
+                        "min": 35,
+                        "max": 37
+                    },
+                    "holidayMode": null,
+                    "connectedInterfaceType": "melCloudWiFi",
+                    "systemId": "00000000-0000-4000-8000-000000000005",
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "givenDisplayName": "Living room",
+                    "displayIcon": "LivingRoom",
+                    "settings": [
+                        {
+                            "name": "RoomTemperature",
+                            "value": "22.5"
+                        },
+                        {
+                            "name": "Power",
+                            "value": "False"
+                        },
+                        {
+                            "name": "OperationMode",
+                            "value": "Cool"
+                        },
+                        {
+                            "name": "ActualFanSpeed",
+                            "value": "Off"
+                        },
+                        {
+                            "name": "SetFanSpeed",
+                            "value": "Three"
+                        },
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": "Swing"
+                        },
+                        {
+                            "name": "VaneVerticalDirection",
+                            "value": "Swing"
+                        },
+                        {
+                            "name": "InStandbyMode",
+                            "value": "False"
+                        },
+                        {
+                            "name": "SetTemperature",
+                            "value": "17"
+                        },
+                        {
+                            "name": "IsInError",
+                            "value": "False"
+                        },
+                        {
+                            "name": "ErrorCode",
+                            "value": ""
+                        }
+                    ],
+                    "timeZone": "Europe/Berlin",
+                    "rssi": -30,
+                    "isConnected": true,
+                    "isInError": false,
+                    "energyProducedOptIn": null,
+                    "isEnergyUsageCompatible": false
+                },
+                {
+                    "unitSettings": null,
+                    "schedule": [],
+                    "scheduleEnabled": true,
+                    "connectedInterfaceIdentifier": "REDACTED",
+                    "capabilities": {
+                        "isMultiSplitSystem": true,
+                        "isLegacyDevice": false,
+                        "hasStandby": true,
+                        "hasCoolOperationMode": true,
+                        "hasHeatOperationMode": true,
+                        "hasAutoOperationMode": true,
+                        "hasDryOperationMode": true,
+                        "hasAutomaticFanSpeed": true,
+                        "hasAirDirection": true,
+                        "hasSwing": true,
+                        "hasExtendedTemperatureRange": true,
+                        "hasEnergyConsumedMeter": true,
+                        "numberOfFanSpeeds": 5,
+                        "minTempCoolDry": 16,
+                        "maxTempCoolDry": 31,
+                        "minTempHeat": 10,
+                        "maxTempHeat": 31,
+                        "minTempAutomatic": 16,
+                        "maxTempAutomatic": 31,
+                        "hasDemandSideControl": true,
+                        "hasHalfDegreeIncrements": true,
+                        "supportsWideVane": false
+                    },
+                    "frostProtection": null,
+                    "overheatProtection": null,
+                    "holidayMode": null,
+                    "connectedInterfaceType": "melCloudWiFi",
+                    "systemId": "00000000-0000-4000-8000-000000000007",
+                    "id": "00000000-0000-4000-8000-000000000008",
+                    "givenDisplayName": "Bedroom",
+                    "displayIcon": "Nursery",
+                    "settings": [
+                        {
+                            "name": "RoomTemperature",
+                            "value": "24"
+                        },
+                        {
+                            "name": "Power",
+                            "value": "False"
+                        },
+                        {
+                            "name": "OperationMode",
+                            "value": "Automatic"
+                        },
+                        {
+                            "name": "ActualFanSpeed",
+                            "value": "Off"
+                        },
+                        {
+                            "name": "SetFanSpeed",
+                            "value": "Auto"
+                        },
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": "Centre"
+                        },
+                        {
+                            "name": "VaneVerticalDirection",
+                            "value": "Auto"
+                        },
+                        {
+                            "name": "InStandbyMode",
+                            "value": "False"
+                        },
+                        {
+                            "name": "SetTemperature",
+                            "value": "20"
+                        },
+                        {
+                            "name": "IsInError",
+                            "value": "False"
+                        },
+                        {
+                            "name": "ErrorCode",
+                            "value": ""
+                        }
+                    ],
+                    "timeZone": "Europe/Berlin",
+                    "rssi": -30,
+                    "isConnected": true,
+                    "isInError": false,
+                    "energyProducedOptIn": null,
+                    "isEnergyUsageCompatible": false
+                }
+            ],
+            "airToWaterUnits": []
+        }
+    ],
+    "guestBuildings": [],
+    "scenes": []
+}

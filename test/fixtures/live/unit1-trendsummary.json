@@ -1,0 +1,222 @@
+[
+    {
+        "reportPeriod": 0,
+        "datasets": [
+            {
+                "id": "set_temperature",
+                "label": "REPORT.TREND_SUMMARY_REPORT.DATASET.LABELS.SET_TEMPERATURE",
+                "data": [
+                    {
+                        "x": "2026-10-12T12:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T13:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T14:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T15:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T16:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T17:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T18:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T19:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T20:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T21:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T22:00:00",
+                        "y": 17
+                    },
+                    {
+                        "x": "2026-10-12T22:18:00",
+                        "y": 17
+                    }
+                ],
+                "backgroundColor": "#36BC6A",
+                "borderColor": "#36BC6A",
+                "yAxisId": "yTemp",
+                "pointRadius": 0,
+                "lineTension": 0,
+                "borderWidth": 2,
+                "stepped": true,
+                "spanGaps": false,
+                "isNonInteractive": false,
+                "hidden": false
+            },
+            {
+                "id": "room_temperature",
+                "label": "REPORT.TREND_SUMMARY_REPORT.DATASET.LABELS.ROOM_TEMPERATURE",
+                "data": [
+                    {
+                        "x": "2026-10-12T15:13:31",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T16:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T17:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T18:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T19:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T20:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T21:00:00",
+                        "y": 24
+                    },
+                    {
+                        "x": "2026-10-12T21:13:32",
+                        "y": 23
+                    },
+                    {
+                        "x": "2026-10-12T21:23:32",
+                        "y": 22
+                    },
+                    {
+                        "x": "2026-10-12T21:53:32",
+                        "y": 22.5
+                    },
+                    {
+                        "x": "2026-10-12T22:00:00",
+                        "y": 22.5
+                    },
+                    {
+                        "x": "2026-10-12T22:18:00",
+                        "y": 22.5
+                    }
+                ],
+                "backgroundColor": "#F1995D",
+                "borderColor": "#F1995D",
+                "yAxisId": "yTemp",
+                "pointRadius": 0,
+                "lineTension": 0,
+                "borderWidth": 2,
+                "stepped": false,
+                "spanGaps": false,
+                "isNonInteractive": false,
+                "hidden": false
+            },
+            {
+                "id": "outside_temperature",
+                "label": "REPORT.TREND_SUMMARY_REPORT.DATASET.LABELS.OUTDOOR_TEMPERATURE",
+                "data": [
+                    {
+                        "x": "2026-10-12T18:43:32",
+                        "y": 13
+                    },
+                    {
+                        "x": "2026-10-12T19:00:00",
+                        "y": 13
+                    },
+                    {
+                        "x": "2026-10-12T19:23:32",
+                        "y": 12
+                    },
+                    {
+                        "x": "2026-10-12T20:00:00",
+                        "y": 12
+                    },
+                    {
+                        "x": "2026-10-12T20:23:31",
+                        "y": 11
+                    },
+                    {
+                        "x": "2026-10-12T20:53:32",
+                        "y": 10
+                    },
+                    {
+                        "x": "2026-10-12T21:00:00",
+                        "y": 10
+                    },
+                    {
+                        "x": "2026-10-12T21:23:32",
+                        "y": 11
+                    },
+                    {
+                        "x": "2026-10-12T21:53:32",
+                        "y": 13
+                    },
+                    {
+                        "x": "2026-10-12T22:00:00",
+                        "y": 13
+                    },
+                    {
+                        "x": "2026-10-12T22:13:32",
+                        "y": 12
+                    },
+                    {
+                        "x": "2026-10-12T22:18:00",
+                        "y": 12
+                    }
+                ],
+                "backgroundColor": "#156082",
+                "borderColor": "#156082",
+                "yAxisId": "yTemp",
+                "pointRadius": 0,
+                "lineTension": 0,
+                "borderWidth": 2,
+                "stepped": false,
+                "spanGaps": false,
+                "isNonInteractive": false,
+                "hidden": false
+            }
+        ],
+        "annotations": [],
+        "annotationLegends": [
+            {
+                "label": "REPORT.COMFORT_GRAPH.OVERLAY_KEY.HEATING",
+                "backgroundColor": "rgba(241,153,93, 0.5)",
+                "hasData": false
+            },
+            {
+                "label": "REPORT.COMFORT_GRAPH.OVERLAY_KEY.COOLING",
+                "backgroundColor": "rgba(205,241,255, 0.5)",
+                "hasData": true
+            },
+            {
+                "label": "REPORT.COMFORT_GRAPH.OVERLAY_KEY.DRY",
+                "backgroundColor": "rgba(2,177,164, 0.5)",
+                "hasData": false
+            }
+        ],
+        "previousTriggers": [],
+        "timeUnit": "minute",
+        "stepSize": 15,
+        "from": "2026-10-10T00:00:00",
+        "to": "2026-10-12T22:18:00"
+    }
+]

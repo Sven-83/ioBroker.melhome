@@ -1,0 +1,14 @@
+{
+    "deviceId": "00000000-0000-4000-8000-000000000006",
+    "measureData": [
+        {
+            "type": "cumulativeEnergyConsumedSinceLastUpload",
+            "values": [
+                {
+                    "time": "2026-10-12 03:00:00.000000000",
+                    "value": "0.0"
+                }
+            ]
+        }
+    ]
+}

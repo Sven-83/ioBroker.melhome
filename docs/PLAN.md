@@ -9,9 +9,10 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split nur wenn MELCloud Home es kann (§5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
 - Autor: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
-- **Nächster Schritt:** lesender Testlauf mit Svens Account (Prüfliste api.md §9), **nur nach seinem OK**. Danach Phase 3.
+- Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
+- **Nächster Schritt:** Phase 3 (Objektbaum & Steuerung).
 - Offen bei Sven:
-  - OK für den lesenden Testlauf. Zugangsdaten nur lokal (dev-server), nie im Repo.
+  - optional: Testlauf mit WebSocket (`$env:PROBE_WS_SECONDS=120; npm run probe`, dabei in der App etwas ändern)
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
   - in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle haben
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
@@ -21,7 +22,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Wertecodes dokumentieren: Betriebsmodi, Lüfterstufen, Seitenlamelle, Höhenlamelle, Temperaturgrenzen je Modus, Fehlerstatus
 - ☑ Rate-Limits und bekannte Stolperfallen aus ADRs/Research-Docs der Referenz gesammelt (GitHub-Issues nicht einzeln durchgesehen)
 - ☑ Ergebnis: `docs/api.md` (eigene API-Spezifikation) + Mapping-Tabelle API ↔ ioBroker-States (Vorschlag, Entscheidungen offen → api.md §5, §8)
-- ☐ Mit Svens Account gegenprüfen – Prüfliste in api.md §9:
+- ◐ Mit Svens Account gegenprüfen – Ergebnisse in api.md §9. Offen: WebSocket-Echo, Split-Frage (App):
   - Sven, jederzeit: in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle anbieten
   - nach Phase 2 (auth.ts + client.ts fertig): **nur lesender** Testlauf (`/context`, Energie, RSSI, trendsummary, WebSocket mithören, **kein PUT**), Responses anonymisiert als Fixtures sichern
 
@@ -39,11 +40,11 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ `types.ts`: defensives Parsen. Unbekannte Werte werden `null` mit einer einzigen Warnung, Ziffern und US-Schreibweise werden normalisiert, Gerätenamen ohne Zeilenumbrüche.
 - ☑ `errors.ts`: Fehlerklassen und Redaktion von Codes, Tokens, Hash, Passwort und E-Mail in allen Meldungen
 - ☑ Unit-Tests gegen die simulierte Cloud (`test/helpers/fake-cloud.ts`) mit anonymisierten Fixtures
-- ☐ Lesender Testlauf mit Svens Account (siehe Phase 0), danach die Fixtures mit echten (anonymisierten) Antworten abgleichen
+- ☑ Lesender Testlauf mit Svens Account, echte anonymisierte Antworten als Fixtures (`test/fixtures/live/`), Parser ohne Warnungen
 
 ## Phase 3 – Objektbaum & Steuerung (ATA)
 - ☐ `devices.<uuid>.info.*` (Raumname aus der App, online, Fehler, Raumtemp, Außentemp, WLAN-Signal – kein Modell)
-- ☐ `devices.<uuid>.control.*` (power, mode, targetTemp, fanSpeed, vaneHorizontal, vaneVertical, offTimer)
+- ☐ `devices.<uuid>.control.*` (power, mode, targetTemp, fanSpeed, vaneHorizontal, vaneVertical, standby, offTimer). Seitenlamelle nur bei `supportsWideVane` steuerbar (Wohnraum ja, zweites Gerät nein)
 - ☐ `devices.<uuid>.energy.*` (falls verfügbar)
 - ☐ Neutrale Wertebereiche via `mapping.ts`, `states`-Definitionen für Enums
 - ☐ Command-Queue mit Debounce (~800 ms), optimistisches ack-Handling
