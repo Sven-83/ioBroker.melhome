@@ -73,7 +73,8 @@
     "translate": "translate-adapter",
     "release": "release-script",
     "dev-server": "dev-server",
-    "probe": "ts-node --transpile-only tools/probe.ts"
+    "probe": "ts-node --transpile-only tools/probe.ts",
+    "vane-test": "ts-node --transpile-only tools/vane-test.ts"
   },
   "bugs": {
     "url": "https://github.com/Sven-83/ioBroker.melcloudhome/issues"
