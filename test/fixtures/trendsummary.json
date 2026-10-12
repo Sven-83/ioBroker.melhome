@@ -1,0 +1,19 @@
+[
+    {
+        "datasets": [
+            {
+                "label": "REPORT.TREND_SUMMARY_REPORT.DATASET.LABELS.ROOM_TEMPERATURE",
+                "data": [{ "x": "2026-01-12T20:13:27", "y": 21 }]
+            },
+            {
+                "label": "REPORT.TREND_SUMMARY_REPORT.DATASET.LABELS.OUTDOOR_TEMPERATURE",
+                "data": [
+                    { "x": "2026-01-12T19:00:00", "y": 5 },
+                    { "x": "2026-01-12T19:42:13", "y": 4.5 },
+                    { "x": "2026-01-12T20:17:51", "y": 4 },
+                    { "x": "2026-01-12T21:00:00", "y": 4 }
+                ]
+            }
+        ]
+    }
+]

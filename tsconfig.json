@@ -20,7 +20,7 @@
         "resolveJsonModule": true,
 
         // @tsconfig/node20 restricts "types" to node only - add the test runner types
-        "types": ["node", "mocha", "chai"],
+        "types": ["node", "mocha", "chai", "chai-as-promised"],
 
         // If you want to disable the stricter type checks (not recommended), uncomment the following line
         // "strict": false,

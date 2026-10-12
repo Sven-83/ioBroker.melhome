@@ -4,11 +4,23 @@
  */
 
 import * as utils from '@iobroker/adapter-core';
+import { AuthClient, TokenManager } from './lib/api/auth';
+import { MelCloudHomeClient } from './lib/api/client';
+import { ConnectionManager } from './lib/api/connection';
+import { HttpTransport } from './lib/api/http';
+import type { UserContext } from './lib/api/types';
 
 /** Minimum REST polling interval in seconds (rate limit protection) */
 const MIN_POLL_INTERVAL_S = 60;
+/** Maximum REST polling interval in seconds */
+const MAX_POLL_INTERVAL_S = 3600;
 
 class Melcloudhome extends utils.Adapter {
+    private http: HttpTransport | undefined;
+    private client: MelCloudHomeClient | undefined;
+    private connection: ConnectionManager | undefined;
+    private knownUnitCount: number | undefined;
+
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
@@ -25,26 +37,61 @@ class Melcloudhome extends utils.Adapter {
     private async onReady(): Promise<void> {
         await this.setState('info.connection', false, true);
 
-        if (!this.config.email || !this.config.password) {
+        const email = (this.config.email ?? '').trim();
+        const password = this.config.password ?? '';
+        if (!email || !password) {
             this.log.warn(
                 'No MELCloud Home credentials configured - please enter e-mail and password in the instance settings',
             );
             return;
         }
 
-        const pollInterval = Number(this.config.pollInterval);
+        let pollInterval = Number(this.config.pollInterval);
         if (!Number.isFinite(pollInterval) || pollInterval < MIN_POLL_INTERVAL_S) {
             this.log.warn(
                 `Polling interval ${this.config.pollInterval} s is invalid or too low - using ${MIN_POLL_INTERVAL_S} s`,
             );
-            this.config.pollInterval = MIN_POLL_INTERVAL_S;
+            pollInterval = MIN_POLL_INTERVAL_S;
         }
+        pollInterval = Math.min(Math.round(pollInterval), MAX_POLL_INTERVAL_S);
+
+        this.http = new HttpTransport();
+        const tokens = new TokenManager(new AuthClient(this.http), { email, password }, this.log);
+        this.client = new MelCloudHomeClient({ http: this.http, tokens, log: this.log });
+        this.connection = new ConnectionManager({
+            source: this.client,
+            log: this.log,
+            pollIntervalMs: pollInterval * 1000,
+            scheduler: {
+                setTimeout: (callback, ms) => this.setTimeout(callback, ms),
+                clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
+            },
+            onConnectionChange: async connected => {
+                await this.setState('info.connection', connected, true);
+            },
+            onContext: context => this.onContext(context),
+        });
 
         this.log.info(
-            `Starting (polling every ${this.config.pollInterval} s, real-time ${this.config.realtime ? 'enabled' : 'disabled'})`,
+            `Starting (polling every ${pollInterval} s, real-time ${this.config.realtime ? 'enabled' : 'disabled'})`,
         );
+        this.connection.start();
+    }
 
-        // TODO Phase 2-4: login, device discovery, object tree, WebSocket + polling
+    /**
+     * Receives every successfully fetched /context.
+     *
+     * @param context - Parsed user context
+     */
+    private onContext(context: UserContext): void {
+        if (context.ataUnits.length !== this.knownUnitCount) {
+            this.knownUnitCount = context.ataUnits.length;
+            this.log.info(`Found ${context.ataUnits.length} air-to-air unit(s)`);
+            if (context.atwUnitCount > 0) {
+                this.log.info(`Ignoring ${context.atwUnitCount} air-to-water unit(s) - not supported yet`);
+            }
+        }
+        // TODO Phase 3: create/update the object tree from context.ataUnits
     }
 
     /**
@@ -54,7 +101,8 @@ class Melcloudhome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
-            // TODO: stop timers, WebSocket and pending requests once implemented
+            this.connection?.stop();
+            this.http?.abort();
             void this.setState('info.connection', false, true);
             callback();
         } catch (error) {

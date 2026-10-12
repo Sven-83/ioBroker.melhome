@@ -3,16 +3,18 @@
 Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
 ## Stand 2026-10-12 / Nächster Einstieg
-- Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account (erst nach Phase 2). Ergebnis: `docs/api.md`.
-- Phase 1 lokal erledigt: Gerüst, Admin-UI, Modul-Rümpfe. build/check/lint/test:package/test:integration grün. git init + erster Commit (`main`).
+- Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account. Ergebnis: `docs/api.md`.
+- Phase 1 lokal erledigt (Gerüst, Admin-UI). GitHub-Repo noch nicht angelegt.
+- Phase 2 erledigt (nur gegen die simulierte Cloud getestet): Login, Token-Erneuerung, REST-Client, Parser, Connection-Manager. 84 Unit-Tests, Lint, Build und Integrationstest grün.
 - Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split nur wenn MELCloud Home es kann (§5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
-- Autor in package.json, io-package.json und LICENSE: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
+- Autor: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
-- **Nächster Schritt:** Phase 2 (API-Client).
+- **Nächster Schritt:** lesender Testlauf mit Svens Account (Prüfliste api.md §9), **nur nach seinem OK**. Danach Phase 3.
 - Offen bei Sven:
+  - OK für den lesenden Testlauf. Zugangsdaten nur lokal (dev-server), nie im Repo.
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
   - in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle haben
-- Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN, die anderen Sprachen sind EN-Platzhalter (später `npm run translate`).
+- Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
 
 ## Phase 0 – API-Analyse (Fundament)
 - ☑ andrew-blake/melcloudhome analysieren: Auth-Flow (Login, Token/Session, Refresh, Ablauf), REST-Endpunkte, WebSocket-Protokoll, Datenmodell ATA (Stand `main`, 2026-10-11)
@@ -30,11 +32,14 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ◐ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☐ GitHub-Repo `Sven-83/ioBroker.melcloudhome` anlegen + pushen (nach OK von Sven)
 
 ## Phase 2 – API-Client
-- ☐ `auth.ts`: Login, Refresh, Ablauferkennung, Re-Login mit exponentiellem Backoff
-- ☐ Wiederverbindung in **jeder** Lage, ohne Aufgeben und ohne manuellen Neustart (api.md §2.3), jede Situation als Test
-- ☐ `client.ts`: Rate-Limit-Guard, Retry bei 5xx/Timeout, Toleranz für 2 Fehlversuche bevor offline
-- ☐ `types.ts`: Schema-Validierung, defensiv
-- ☐ Unit-Tests gegen Mock-Server mit Fixtures
+- ☑ `http.ts`: alle Requests seriell mit min. 0,5 s Abstand (auch Login), 30 s Timeout, Abbruch beim Unload
+- ☑ `auth.ts`: PAR → authorize → Cognito-Formular → Callback → Token, inkl. Abkürzung bei bestehender Session. Eigener Cookie-Jar (`tough-cookie`). `TokenManager`: Refresh 60 s vor Ablauf, nie parallel, Re-Login nur bei abgelehntem Refresh-Token
+- ☑ `connection.ts`: zentraler Connection-Manager mit Backoff je Fehlerart (api.md §2.3), gibt nie auf. Jede Tabellenzeile ist ein Test.
+- ☑ `client.ts`: `/context`, Steuerung (PUT), Energie, WLAN-Signal, Außentemperatur, WS-Credential. 401-Kaskade Refresh → Login. GET bei 5xx/Netzfehler einmal wiederholt, PUT nie automatisch. Zwei Fehlversuche toleriert (im Connection-Manager), beim dritten offline.
+- ☑ `types.ts`: defensives Parsen. Unbekannte Werte werden `null` mit einer einzigen Warnung, Ziffern und US-Schreibweise werden normalisiert, Gerätenamen ohne Zeilenumbrüche.
+- ☑ `errors.ts`: Fehlerklassen und Redaktion von Codes, Tokens, Hash, Passwort und E-Mail in allen Meldungen
+- ☑ Unit-Tests gegen die simulierte Cloud (`test/helpers/fake-cloud.ts`) mit anonymisierten Fixtures
+- ☐ Lesender Testlauf mit Svens Account (siehe Phase 0), danach die Fixtures mit echten (anonymisierten) Antworten abgleichen
 
 ## Phase 3 – Objektbaum & Steuerung (ATA)
 - ☐ `devices.<uuid>.info.*` (Raumname aus der App, online, Fehler, Raumtemp, Außentemp, WLAN-Signal – kein Modell)

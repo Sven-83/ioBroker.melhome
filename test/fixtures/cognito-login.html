@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Signin</title></head>
+<body>
+<form name="cognitoSignInForm" method="post" action="/login?client_id=fakeclient&amp;redirect_uri=https%3A%2F%2Fauth.melcloudhome.com%2Fsignin-oidc&amp;response_type=code&amp;scope=openid&amp;state=fakestate">
+    <input type="hidden" value="00000000-csrf-token-0000" name="_csrf"/>
+    <input id="signInFormUsername" name="username" type="text" class="form-control inputField-customizable"/>
+    <input id="signInFormPassword" name="password" type="password" class="form-control inputField-customizable"/>
+    <input name="cognitoAsfData" type="hidden" value=""/>
+    <input name="signInSubmitButton" type="submit" value="Sign in"/>
+</form>
+</body>
+</html>

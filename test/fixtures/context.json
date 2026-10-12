@@ -1,0 +1,111 @@
+{
+    "id": "00000000-0000-4000-8000-0000000000aa",
+    "email": "user@example.invalid",
+    "firstname": "Test",
+    "lastname": "User",
+    "buildings": [
+        {
+            "id": "00000000-0000-4000-8000-0000000000b1",
+            "name": "Home",
+            "timezone": "Europe/Berlin",
+            "airToAirUnits": [
+                {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "givenDisplayName": "Living room",
+                    "displayIcon": "LivingRoom",
+                    "settings": [
+                        { "name": "Power", "value": "True" },
+                        { "name": "OperationMode", "value": "Heat" },
+                        { "name": "SetTemperature", "value": "21.5" },
+                        { "name": "RoomTemperature", "value": "20" },
+                        { "name": "SetFanSpeed", "value": "Auto" },
+                        { "name": "ActualFanSpeed", "value": "Two" },
+                        { "name": "VaneVerticalDirection", "value": "Auto" },
+                        { "name": "VaneHorizontalDirection", "value": "Centre" },
+                        { "name": "InStandbyMode", "value": "False" },
+                        { "name": "IsInError", "value": "False" },
+                        { "name": "ErrorCode", "value": "" }
+                    ],
+                    "isConnected": true,
+                    "isInError": false,
+                    "capabilities": {
+                        "numberOfFanSpeeds": 5,
+                        "hasAutomaticFanSpeed": true,
+                        "minTempHeat": 10,
+                        "maxTempHeat": 31,
+                        "minTempCoolDry": 16,
+                        "maxTempCoolDry": 31,
+                        "minTempAutomatic": 16,
+                        "maxTempAutomatic": 31,
+                        "hasHalfDegreeIncrements": true,
+                        "hasExtendedTemperatureRange": true,
+                        "hasCoolOperationMode": true,
+                        "hasHeatOperationMode": true,
+                        "hasAutoOperationMode": true,
+                        "hasDryOperationMode": true,
+                        "hasSwing": true,
+                        "hasAirDirection": true,
+                        "supportsWideVane": false,
+                        "hasStandby": false,
+                        "hasEnergyConsumedMeter": true,
+                        "isMultiSplitSystem": true,
+                        "someFutureFlag": "ignored"
+                    },
+                    "rssi": -48,
+                    "timeZone": "Europe/Berlin",
+                    "schedule": [],
+                    "scheduleEnabled": false,
+                    "frostProtection": null,
+                    "overheatProtection": null,
+                    "holidayMode": null,
+                    "connectedInterfaceIdentifier": "00:00:00:00:00:00",
+                    "systemId": "00000000-0000-4000-8000-0000000000c1"
+                },
+                {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "givenDisplayName": "Bed\r\nroom",
+                    "settings": [
+                        { "name": "Power", "value": "false" },
+                        { "name": "OperationMode", "value": "Automatic" },
+                        { "name": "SetTemperature", "value": "19" },
+                        { "name": "RoomTemperature", "value": "" },
+                        { "name": "SetFanSpeed", "value": "3" },
+                        { "name": "ActualFanSpeed", "value": "Off" },
+                        { "name": "VaneVerticalDirection", "value": "7" },
+                        { "name": "VaneHorizontalDirection", "value": "CenterLeft" },
+                        { "name": "IsInError", "value": "True" },
+                        { "name": "ErrorCode", "value": "E6" }
+                    ],
+                    "isConnected": false,
+                    "capabilities": { "numberOfFanSpeeds": "3", "hasHalfDegreeIncrements": "False" },
+                    "timeZone": "Europe/Berlin"
+                },
+                {
+                    "givenDisplayName": "Unit without id",
+                    "settings": []
+                }
+            ],
+            "airToWaterUnits": [{ "id": "00000000-0000-4000-8000-0000000000d1" }]
+        }
+    ],
+    "guestBuildings": [
+        {
+            "id": "00000000-0000-4000-8000-0000000000b2",
+            "name": "Shared house",
+            "airToAirUnits": [
+                {
+                    "id": "00000000-0000-4000-8000-000000000003",
+                    "givenDisplayName": "Office",
+                    "settings": [
+                        { "name": "Power", "value": "True" },
+                        { "name": "OperationMode", "value": "Turbo" },
+                        { "name": "SetFanSpeed", "value": "Five" },
+                        { "name": "VaneHorizontalDirection", "value": "Swing" }
+                    ],
+                    "isConnected": true,
+                    "isInError": true
+                }
+            ]
+        }
+    ]
+}
