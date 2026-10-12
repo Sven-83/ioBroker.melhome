@@ -2,20 +2,17 @@
 
 Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
-## Stand 2026-10-11 / Nächster Einstieg
-- Phase 0 erledigt bis auf die Account-Gegenprüfung (siehe unten). Ergebnis: `docs/api.md`.
-- Entscheidungen von Sven (Details in api.md):
-  - State-Codes und Symbole exakt wie im Jäger-Dashboard (§5)
-  - Split nur, wenn MELCloud Home es kann (§5.4)
-  - kein Modell, nur der Raumname aus der App
-  - Tokens nur im Arbeitsspeicher, Login beim Start
-  - automatische Wiederverbindung in jeder Lage (§2.3)
-  - Außentemperatur in v1
-- **Nächster Schritt:** Phase 1 (Gerüst).
-- Voraussetzungen:
-  - `git` auf dem Windows-Rechner fehlt noch (`winget install Git.Git`)
-  - Node.js ≥ 20 prüfen
-- Offen bei Sven: in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle haben.
+## Stand 2026-10-12 / Nächster Einstieg
+- Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account (erst nach Phase 2). Ergebnis: `docs/api.md`.
+- Phase 1 lokal erledigt: Gerüst, Admin-UI, Modul-Rümpfe. build/check/lint/test:package/test:integration grün. git init + erster Commit (`main`).
+- Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split nur wenn MELCloud Home es kann (§5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
+- Autor in package.json, io-package.json und LICENSE: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
+- `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
+- **Nächster Schritt:** Phase 2 (API-Client).
+- Offen bei Sven:
+  - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
+  - in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle haben
+- Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN, die anderen Sprachen sind EN-Platzhalter (später `npm run translate`).
 
 ## Phase 0 – API-Analyse (Fundament)
 - ☑ andrew-blake/melcloudhome analysieren: Auth-Flow (Login, Token/Session, Refresh, Ablauf), REST-Endpunkte, WebSocket-Protokoll, Datenmodell ATA (Stand `main`, 2026-10-11)
@@ -27,10 +24,10 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - nach Phase 2 (auth.ts + client.ts fertig): **nur lesender** Testlauf (`/context`, Energie, RSSI, trendsummary, WebSocket mithören, **kein PUT**), Responses anonymisiert als Fixtures sichern
 
 ## Phase 1 – Gerüst
-- ☐ `@iobroker/create-adapter` (TypeScript, jsonConfig, ESLint/Prettier, release-script, GitHub Actions) – in Temp-Ordner erzeugen und in dieses Repo übernehmen, ohne CLAUDE.md / docs / reference zu überschreiben
-- ☐ Ordnerstruktur laut CLAUDE.md anlegen
-- ☐ Admin: E-Mail, Passwort (encrypted), Polling-Intervall (min. 60 s), Echtzeit an/aus, Geräte-Icons fürs Dashboard
-- ☐ GitHub-Repo `Sven-83/ioBroker.melcloudhome`, MIT-Lizenz, Attribution andrew-blake
+- ☑ `@iobroker/create-adapter` v3.1.5 (TypeScript, jsonConfig, ESLint/Prettier, release-script, GitHub Actions, dev-server lokal), ohne CLAUDE.md / docs / reference zu überschreiben
+- ☑ Ordnerstruktur laut CLAUDE.md (Rümpfe in `src/lib/api`, `src/lib/devices`, `mapping.ts`, `www/`, `test/fixtures/`)
+- ◐ Admin: E-Mail, Passwort (encrypted + protected), Polling-Intervall (min. 60 s), Echtzeit an/aus – ☐ Geräte-Icons fürs Dashboard (Phase 4b)
+- ◐ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☐ GitHub-Repo `Sven-83/ioBroker.melcloudhome` anlegen + pushen (nach OK von Sven)
 
 ## Phase 2 – API-Client
 - ☐ `auth.ts`: Login, Refresh, Ablauferkennung, Re-Login mit exponentiellem Backoff
