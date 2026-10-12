@@ -11,7 +11,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
 - Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
 - Phase 3 umgesetzt und getestet (nur gegen Fakes und echte Testdaten). Live-Test mit dem dev-server steht noch aus.
-- **Nächster Schritt:** Live-Test Phase 3 (dev-server), danach Phase 4 (WebSocket).
+- **Nächster Schritt:** Lamellen-Test beim zweiten Gerät (`npm run vane-test`): Die Cloud meldet `supportsWideVane=false`, die App bietet aber dieselben Optionen wie beim Wohnraum. Bewegt sich die Lamelle, wird die horizontale Lamelle für alle Geräte mit `hasAirDirection` freigegeben. Danach Live-Test Phase 3 (dev-server), dann Phase 4 (WebSocket).
 - Offen bei Sven:
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
