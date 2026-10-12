@@ -135,7 +135,7 @@ interface Summary {
     tokenLifetimeSeconds?: number;
     steps: { step: string; result: string }[];
     units: Record<string, unknown>[];
-    webSocket?: { connected: boolean; messages: number; messageTypes: string[] };
+    webSocket?: WebSocketResult;
 }
 
 async function main(): Promise<void> {
@@ -284,8 +284,12 @@ async function main(): Promise<void> {
         summary.webSocket = await listenWebSocket(get, wsSeconds, frames => save('websocket-frames.json', frames));
         step(
             'WebSocket',
-            `connected=${summary.webSocket.connected}, ${summary.webSocket.messages} message(s): ${summary.webSocket.messageTypes.join(', ') || '-'}`,
+            `connected=${summary.webSocket.connected}, ${summary.webSocket.messages} message(s): ${summary.webSocket.messageTypes.join(', ') || '-'}, close code ${summary.webSocket.closeCode ?? '-'}`,
         );
+        // state after the changes made in the app, to compare with the push messages
+        const after = await get(`${DEFAULT_ENDPOINTS.api}${PATH_CONTEXT}`);
+        save('context-after.json', after.data);
+        step('GET /context after listening', `HTTP ${after.status}`);
     }
 
     save('summary.json', summary);
@@ -293,13 +297,21 @@ async function main(): Promise<void> {
     console.log('Please check the files before sharing them - nothing has been uploaded anywhere.');
 }
 
+interface WebSocketResult {
+    connected: boolean;
+    messages: number;
+    messageTypes: string[];
+    closeCode?: number;
+    closeReason?: string;
+}
+
 async function listenWebSocket(
     get: (url: string) => Promise<{ status: number; data: unknown }>,
     seconds: number,
     store: (frames: unknown[]) => void,
-): Promise<{ connected: boolean; messages: number; messageTypes: string[] }> {
+): Promise<WebSocketResult> {
     const WebSocketImpl = (globalThis as { WebSocket?: new (url: string) => WebSocket }).WebSocket;
-    const result = { connected: false, messages: 0, messageTypes: [] as string[] };
+    const result: WebSocketResult = { connected: false, messages: 0, messageTypes: [] };
     if (!WebSocketImpl) {
         console.log('  WebSocket: not available in this Node.js version (needs >= 22)');
         return result;
@@ -335,7 +347,9 @@ async function listenWebSocket(
             }
         });
         socket.addEventListener('error', () => undefined);
-        socket.addEventListener('close', () => {
+        socket.addEventListener('close', event => {
+            result.closeCode = event.code;
+            result.closeReason = event.reason.replace(/hash=[^&s]*/gi, 'hash=***');
             clearTimeout(timer);
             resolve();
         });
