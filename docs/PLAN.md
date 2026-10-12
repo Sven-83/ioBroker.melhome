@@ -6,7 +6,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account. Ergebnis: `docs/api.md`.
 - Phase 1 lokal erledigt (Gerüst, Admin-UI). GitHub-Repo noch nicht angelegt.
 - Phase 2 erledigt (nur gegen die simulierte Cloud getestet): Login, Token-Erneuerung, REST-Client, Parser, Connection-Manager. 84 Unit-Tests, Lint, Build und Integrationstest grün.
-- Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split nur wenn MELCloud Home es kann (§5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
+- Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split entfällt (MELCloud Home kann es nicht, §5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
 - Autor: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
 - Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
@@ -14,7 +14,6 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - Offen bei Sven:
   - optional: Testlauf mit WebSocket (`$env:PROBE_WS_SECONDS=120; npm run probe`, dabei in der App etwas ändern)
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
-  - in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle haben
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
 
 ## Phase 0 – API-Analyse (Fundament)
@@ -22,8 +21,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Wertecodes dokumentieren: Betriebsmodi, Lüfterstufen, Seitenlamelle, Höhenlamelle, Temperaturgrenzen je Modus, Fehlerstatus
 - ☑ Rate-Limits und bekannte Stolperfallen aus ADRs/Research-Docs der Referenz gesammelt (GitHub-Issues nicht einzeln durchgesehen)
 - ☑ Ergebnis: `docs/api.md` (eigene API-Spezifikation) + Mapping-Tabelle API ↔ ioBroker-States (Vorschlag, Entscheidungen offen → api.md §5, §8)
-- ◐ Mit Svens Account gegenprüfen – Ergebnisse in api.md §9. Offen: WebSocket-Echo, Split-Frage (App):
-  - Sven, jederzeit: in der offiziellen App nachsehen, ob die MSZ-AY eine Split-/Wide-Einstellung der Seitenlamelle anbieten
+- ◐ Mit Svens Account gegenprüfen – Ergebnisse in api.md §9. Split geklärt (gibt es nicht). Offen: WebSocket-Echo
   - nach Phase 2 (auth.ts + client.ts fertig): **nur lesender** Testlauf (`/context`, Energie, RSSI, trendsummary, WebSocket mithören, **kein PUT**), Responses anonymisiert als Fixtures sichern
 
 ## Phase 1 – Gerüst
@@ -66,7 +64,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☐ +/- mit optimistischer Anzeige + Debounce
 - ☐ Gerätenamen escapen (XSS), Fonts (Fraunces, Work Sans, OFL) lokal
 - ☐ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz
-- ☐ Unverändert übernehmen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split nur, wenn MELCloud Home es unterstützt – sonst entfernen), Timer-Rad, Online-Punkt, Störungs-Badge
+- ☐ Unverändert übernehmen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split-Button **entfernen**, gibt es in MELCloud Home nicht), Timer-Rad, Online-Punkt, Störungs-Badge
 - ☐ Visueller Test: Desktop, Tablet, VIS-2-iframe
 
 ## Phase 5 – Qualität

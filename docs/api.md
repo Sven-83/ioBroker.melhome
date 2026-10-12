@@ -353,12 +353,10 @@ MELCloud-Home-Kodierung macht ausschließlich `mapping.ts`.
 | Position 3 | **3** | `Centre` | 3 |
 | Position 4 | **4** | `RightCentre` | 4 |
 | Position 5 | **5** | `Right` | 5 |
-| Split 50/50 (V-Pfeile) | **8** | ⚠️ **kein Gegenstück** in MELCloud Home beobachtet | – |
 | Swing (Bogen mit Pfeilen) | **12** | `Swing` | 7 |
 
-⚠️ **Split (8) – Entscheidung Sven:** Nur behalten, wenn MELCloud Home es unterstützt, sonst ersatzlos
-weglassen (kein State-Wert, kein Button). Klärung bei der Gegenprüfung mit Svens Account (§9). Bis dahin
-wird Split **nicht** implementiert.
+**Split (8) entfällt (Entscheidung Sven, geprüft 2026-10-12):** Die offizielle App bietet für die Seitenlamelle nur
+Position 1–5, Swing und Auto an, die API kennt keinen Split-Wert. Kein State-Wert, kein Button im Dashboard.
 
 ### 5.5 Temperaturen
 
@@ -374,7 +372,7 @@ Verbleibende Abweichungen:
 
 | Dashboard | MELCloud Home | Konsequenz |
 |---|---|---|
-| Seitenlamelle 8 = Split | **nicht beobachtet** | nur falls API es kann, sonst entfällt es (§5.4) |
+| Seitenlamelle 8 = Split | gibt es nicht | entfällt (§5.4) |
 | Seitenlamelle Position 1–5 | benannt Links … Rechts | 1:1 über `mapping.ts` |
 | Sollwert fest 16–31 | Heizen ab 10 °C | Grenzen aus `capabilities.*` |
 
@@ -452,7 +450,7 @@ geprüft.
 | `control.targetTemp` | number °C | `level.temperature` | `SetTemperature` | `setTemperature` | min/max/step aus Capabilities je Modus |
 | `control.fanSpeed` | number | `level.mode.fan` | `SetFanSpeed` | `setFanSpeed` | 0 Auto, 1–n (n=`numberOfFanSpeeds`) (§5.2) |
 | `control.vaneVerticalDirection` | number | `level.mode.swing` | `VaneVerticalDirection` | `vaneVerticalDirection` (allein) | 0 Auto, 1–5 Position, 7 Swing (§5.3) |
-| `control.vaneHorizontalDirection` | number | `level.mode.swing` | `VaneHorizontalDirection` | `vaneHorizontalDirection` (allein) | 0 Auto, 1–5 Position, 12 Swing; 8 Split nur falls API-unterstützt (§5.4) |
+| `control.vaneHorizontalDirection` | number | `level.mode.swing` | `VaneHorizontalDirection` | `vaneHorizontalDirection` (allein) | 0 Auto, 1–5 Position, 12 Swing (kein Split, §5.4); nur bei `supportsWideVane` schreibbar |
 | `control.standby` | boolean | `switch` | `InStandbyMode` | `inStandbyMode` | nur bei `hasStandby` |
 | `control.offTimer` | number min | `level.timer` | – (Adapter-intern) | bei Ablauf `power:false` | 0 = aus, max 360 |
 | `control.offTimerRemaining` | number s | `value.interval` | – (Adapter-intern) | – | read-only, überlebt Neustart (Endzeit persistieren) |
@@ -501,7 +499,7 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
 | `expires_in` des Access-Tokens | **3600 s** |
 | `SetFanSpeed` / `VaneVerticalDirection` in `/context`: Ziffern oder Wörter? | **Wörter** (`Three`, `Auto`, `Swing`). Die Ziffern-Normalisierung bleibt als Absicherung. |
 | `supportsWideVane` / `hasAirDirection` | `hasAirDirection=true` bei beiden. `supportsWideVane` ist **je Gerät verschieden**: Wohnraum-Gerät `true` (Seitenlamelle steht auf `Swing`), zweites Gerät `false` (`Centre`). Steuerbarkeit der Seitenlamelle also je Gerät aus der Capability ableiten. |
-| Split-/Wide-Einstellung (Code 8) | in den Daten **kein** Wert dafür. Endgültig erst mit dem Blick in die offizielle App (Sven). |
+| Split-/Wide-Einstellung (Code 8) | **gibt es nicht**: kein Wert in den Daten, die App bietet nur Position 1–5, Swing, Auto (Sven, 2026-10-12) → entfällt |
 | Energie bei Multi-Split | **beide** Inneneinheiten liefern Stundenwerte (Auflösung 100 Wh). `isEnergyUsageCompatible` ist trotzdem `false` – nicht auswerten. |
 | `hasStandby` | `true` bei beiden (Referenz-Default war `false`) → `control.standby` anlegen |
 | `rssi` in `/context` veraltet? | **ja**: `/context` -30, Telemetrie -44/-42 dBm |
