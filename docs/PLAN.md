@@ -12,7 +12,6 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
 - **Nächster Schritt:** Phase 3 (Objektbaum & Steuerung).
 - Offen bei Sven:
-  - optional: Testlauf mit WebSocket (`$env:PROBE_WS_SECONDS=120; npm run probe`, dabei in der App etwas ändern)
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
 
@@ -21,7 +20,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Wertecodes dokumentieren: Betriebsmodi, Lüfterstufen, Seitenlamelle, Höhenlamelle, Temperaturgrenzen je Modus, Fehlerstatus
 - ☑ Rate-Limits und bekannte Stolperfallen aus ADRs/Research-Docs der Referenz gesammelt (GitHub-Issues nicht einzeln durchgesehen)
 - ☑ Ergebnis: `docs/api.md` (eigene API-Spezifikation) + Mapping-Tabelle API ↔ ioBroker-States (Vorschlag, Entscheidungen offen → api.md §5, §8)
-- ◐ Mit Svens Account gegenprüfen – Ergebnisse in api.md §9. Split geklärt (gibt es nicht). Offen: WebSocket-Echo
+- ☑ Mit Svens Account gegenprüfen – Ergebnisse in api.md §9 (Login, Werteformate, Energie, Außentemperatur, WebSocket, Split)
   - nach Phase 2 (auth.ts + client.ts fertig): **nur lesender** Testlauf (`/context`, Energie, RSSI, trendsummary, WebSocket mithören, **kein PUT**), Responses anonymisiert als Fixtures sichern
 
 ## Phase 1 – Gerüst

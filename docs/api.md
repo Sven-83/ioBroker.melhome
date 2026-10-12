@@ -504,7 +504,8 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
 | `hasStandby` | `true` bei beiden (Referenz-Default war `false`) → `control.standby` anlegen |
 | `rssi` in `/context` veraltet? | **ja**: `/context` -30, Telemetrie -44/-42 dBm |
 | Außentemperatur | ✅ Antwort ist eine **Liste** mit einem Report; Dataset-`id` `outside_temperature`. Echte Messpunkte alle ~10 min (Sekunde ≠ 0), Ortszeit des Geräts. Der Server rundet `from` auf Mitternacht (Ortszeit) ab. |
-| WS-Echo für vertikales Swing (`6`?) | **offen** – Testlauf ohne WebSocket. Nachholen mit `PROBE_WS_SECONDS=120`. |
+| WS-Echo für vertikales Swing (`6`?) | ✅ **`6`** bestätigt (Mitschnitt 2026-10-12, `test/fixtures/live/websocket-frames.json`) |
+| WebSocket allgemein | ✅ Verbindung mit Hash klappt. 12 Nachrichten in 240 s, alle `unitStateChanged` mit **genau einem** Setting, Feld `Data` (groß). Werte als Bool/Zahl: `Power` true/false, `SetTemperature` 17.5, `SetFanSpeed` 2, `VaneVerticalDirection` 6 (Swing) / 1, `VaneHorizontalDirection` 3/4/5 (= Centre/RightCentre/Right, passt zu §5.4). Echo kommt ~1 s nach der Änderung in der App. **Keine** verzögerten Geräteberichte (Wort-Strings) und kein `ActualFanSpeed` im Fenster beobachtet. → Bestätigt die Strategie: Frames nur als Auslöser für `/context`. |
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),

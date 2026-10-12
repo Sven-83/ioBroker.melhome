@@ -1,0 +1,218 @@
+[
+    {
+        "receivedAt": "2026-10-12T20:30:28.443Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "Power",
+                            "value": true
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:31:20.090Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneVerticalDirection",
+                            "value": 6
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:31:46.880Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": 4
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:32:07.303Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "SetTemperature",
+                            "value": 17.5
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:32:27.733Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "SetFanSpeed",
+                            "value": 2
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:32:52.359Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "Power",
+                            "value": false
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:32:56.903Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "SetTemperature",
+                            "value": 17
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:32:58.245Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "SetFanSpeed",
+                            "value": 3
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:33:01.829Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneVerticalDirection",
+                            "value": 1
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:33:04.469Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": 3
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:33:05.227Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": 4
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "receivedAt": "2026-10-12T20:33:05.531Z",
+        "data": [
+            {
+                "messageType": "unitStateChanged",
+                "Data": {
+                    "id": "00000000-0000-4000-8000-000000000006",
+                    "unitType": "ata",
+                    "settings": [
+                        {
+                            "name": "VaneHorizontalDirection",
+                            "value": 5
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
