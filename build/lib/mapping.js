@@ -67,11 +67,11 @@ const MODE_LABELS = { 8: "Auto", 1: "Heat", 3: "Cool", 2: "Dry", 7: "Fan" };
 const POSITION_LABELS = {
   Auto: "Auto",
   Swing: "Swing",
-  One: "Position 1",
+  One: "Position 1 (top)",
   Two: "Position 2",
   Three: "Position 3",
   Four: "Position 4",
-  Five: "Position 5",
+  Five: "Position 5 (bottom)",
   Left: "Position 1 (left)",
   LeftCentre: "Position 2",
   Centre: "Position 3 (centre)",

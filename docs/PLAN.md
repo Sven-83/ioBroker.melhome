@@ -57,15 +57,16 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - ☑ 2026-10-13 Befehl Solltemperatur 17 → 17,5 → 17 °C: PUT 200, ack=true, App und Cloud-Abfrage nach Ablauf der Sperre bestätigen den Wert
   - ☑ Energie erstes Gerät: erste Abfragen ohne Stundenwerte – kein Fehler, kaum Verbrauch und Werte kommen verzögert in der Cloud an (Rohantwort 21:10 enthielt sie)
   - ☑ 2026-10-13 Lüfter 3 → 2, Höhenlamelle 5 → 3, Seitenlamelle Swing → Mitte und zurück: je PUT 200, ack=true, Cloud nach Sperre + App/Gerät bestätigt
-  - ◐ 2026-10-13 Seitenlamelle Swing/Auto: Gerät ignoriert sie nach fester Position – auch bei Web-App und Handy-App, also kein Adapterfehler (api.md §9.1). Folgearbeit in Phase 4.
+  - ☑ 2026-10-13 Seitenlamelle Swing: Ursache gefunden (Cloud verwirft Swing bis zum nächsten Gerätebericht, betrifft auch die offizielle App, api.md §9.1). Kein Adapterfehler.
   - ☐ Abschalt-Timer (1 min), danach Einschalten mit Modus
   - Hinweis: Windows 11 ohne `wmic` → `dev-server watch` stürzt ab (nodemon), `dev-server run` verwenden
 
 ## Phase 4 – Echtzeit
 - ☐ WebSocket-Push, Heartbeat, Reconnect mit Backoff
 - ☐ Automatischer Fallback auf Polling, Status-State
-- ☐ Geräteberichte (WS-Frames mit Wort-Strings, z. B. `VaneHorizontalDirection = "Left"`) als Ist-Wert übernehmen. Weicht das Gerät vom Befehl ab (bekannt: Seitenlamelle Swing/Auto nach fester Position, api.md §9.1), echten Wert anzeigen und einmal warnen.
-- ☐ README „Bekannte Einschränkungen“: Seitenlamelle Swing/Auto wird vom Gerät teils ignoriert (auch in der offiziellen App), Abhilfe Aus/Ein
+- ☐ Geräteberichte (WS-Frames mit Wort-Strings, z. B. `VaneHorizontalDirection = "Left"`) als Ist-Wert übernehmen
+- ☐ Swing-Umgehung (api.md §9.1): Swing-Wunsch merken, bei neuem Ist-Wert ≠ Swing (WS oder `/context`) automatisch erneut senden, begrenzt (z. B. 30 min, max. 3×), Info-Log. Unit-Tests dazu. Ggf. vorgezogen in Phase 3, da auch mit Polling möglich.
+- ☐ README „Bekannte Einschränkungen“: Seitenlamelle Swing nach fester Position wird erst nach dem nächsten Gerätebericht übernommen (auch in der offiziellen App); der Adapter wiederholt automatisch
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`

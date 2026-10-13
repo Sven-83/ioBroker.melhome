@@ -511,15 +511,19 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
 
 - Solltemperatur, Lüfter, Höhenlamelle, Seitenlamelle Position 1–5: PUT 200, WS-Echo sofort, Gerät setzt um,
   `/context` bestätigt nach Ablauf der Optimistik-Sperre.
-- **Seitenlamelle Swing (WS-Echo `7`) und Auto (`0`) wirken am Gerät oft nicht** – unabhängig vom Absender:
-  Adapter, Web-App (`melcloudhome.com`) und Handy-App scheitern gleichermaßen, sobald vorher eine feste Position
-  gesetzt wurde. Nach Aus/Ein des Geräts wirkt Swing wieder (einmal reproduziert). Ein Web-Swing aus Position 3
-  hat einmal funktioniert (ungeklärt).
-- PUT-Body der Web-App ist **byte-identisch** zu unserem (alle 8 Felder, nur `vaneHorizontalDirection: "Swing"`).
-  Abstand Position → Swing (20 s, 63 s, 93 s) ist nicht die Ursache.
-- `/context` meldet danach dauerhaft `Swing`, obwohl das Gerät steht. Die Wahrheit kommt nur als **Gerätebericht**
-  über den WebSocket: `VaneHorizontalDirection = "Left"` (Wort-String, ~1–2 min später, mit `RoomTemperature`
-  im selben Frame). → Phase 4: Geräteberichte (Wort-Strings) als Ist-Wert auswerten, Abweichung vom Befehl loggen.
+- **Seitenlamelle Swing (WS-Echo `7`) wirkt nach einer festen Position oft nicht** – bei jedem Absender
+  (Adapter, Web-App `melcloudhome.com`, Handy-App). PUT-Bodies der Web-App für Position und Swing sind
+  **byte-identisch** zu unseren; Abstand (20–99 s) und Umweg über Auto sind nicht die Ursache.
+- **Ursache (Modell, durch Vorhersage bestätigt 22:39):** Die Cloud kennt den Ist-Zustand nur aus **Geräteberichten**
+  und reicht einen Befehl offenbar nur weiter, wenn er vom zuletzt *gemeldeten* Wert abweicht. Nach Swing → Position
+  bleibt „Swing“ der letzte Bericht, ein erneutes Swing wird verworfen. `/context` zeigt währenddessen den
+  *befohlenen* Wert (`Swing`), nicht den echten.
+- **Geräteberichte** kommen selten: zusammen mit einer Änderung der Raumtemperatur (beobachtet 21:13:34, 21:53:35,
+  22:33:59 – Lamelle + `RoomTemperature` im selben Frame bzw. derselben `/context`-Änderung) und nach Aus/Ein.
+  Im WS als Wort-String (`VaneHorizontalDirection = "Left"`), Befehls-Echos dagegen als Zahl.
+- Direkt nach so einem Bericht wirkt Swing sofort (Vorhersage getestet: Bericht „4“ um 22:33:59, Swing 22:39 ✔).
+- **Umgehung (Plan):** Swing-Wunsch merken; meldet `/context`/WS danach einen neuen Ist-Wert (≠ Swing), Swing
+  automatisch erneut senden. Auto (`0`) zeigte am Gerät keine sichtbare Bewegung – vermutlich gleiches Verhalten.
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),

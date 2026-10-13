@@ -339,6 +339,8 @@ async function listenWebSocket(
                 // keep text
             }
             frames.push({ receivedAt: new Date().toISOString(), data });
+            // write after every frame so a running session can be followed live
+            store(frames);
             for (const message of Array.isArray(data) ? data : [data]) {
                 const type = (message as { messageType?: string } | null)?.messageType;
                 if (type && !result.messageTypes.includes(type)) {
