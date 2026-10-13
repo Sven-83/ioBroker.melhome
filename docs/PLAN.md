@@ -11,7 +11,8 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - `reference/` und `CLAUDE.md` sind nur lokal von git ausgeschlossen (`.git/info/exclude`), weil sie die private Host-IP und Raumnamen enthalten.
 - Lesender Testlauf mit Svens Account am 2026-10-12 erfolgreich (Ergebnisse in api.md §9, Testdaten in `test/fixtures/live/`).
 - Phase 3 umgesetzt und getestet (nur gegen Fakes und echte Testdaten). Live-Test mit dem dev-server steht noch aus.
-- **Nächster Schritt:** Lamellen-Test beim zweiten Gerät (`npm run vane-test`): Die Cloud meldet `supportsWideVane=false`, die App bietet aber dieselben Optionen wie beim Wohnraum. Bewegt sich die Lamelle, wird die horizontale Lamelle für alle Geräte mit `hasAirDirection` freigegeben. Danach Live-Test Phase 3 (dev-server), dann Phase 4 (WebSocket).
+- Lamellen-Frage geklärt (2026-10-13, Sichtprüfung durch Sven): Das zweite Gerät hat keine horizontale Lamelle, `supportsWideVane=false` stimmt. Die App zeigt die Option trotzdem an. Der Adapter bleibt wie er ist (`vaneHorizontalDirection` nur bei `supportsWideVane` schreibbar).
+- **Nächster Schritt:** Live-Test Phase 3 mit dem dev-server (erst nur lesen, dann Befehle nach OK von Sven), dann Phase 4 (WebSocket).
 - Offen bei Sven:
   - `gh auth login` und OK zum Anlegen des GitHub-Repos (öffentlich/privat)
 - Hinweise: npm 11 blockiert install-scripts (esbuild-postinstall) – der Build läuft trotzdem. Die Admin-Übersetzungen sind bisher nur DE/EN.
@@ -65,10 +66,11 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☐ Raum-Icons (Sessel, Bett, …) als Icon-Set, Zuordnung pro Gerät aus Adapter-Config
 - ☐ Wertecodes = Dashboard-Codes (klassische MELCloud, siehe api.md §5), Übersetzung nur im Adapter (`mapping.ts`), kein Wissen über MELCloud-Home-Codes im Frontend
 - ☐ Temperaturbereich und Lüfterstufen aus Geräte-Fähigkeiten statt hart (16–31 °C, 5 Stufen)
+- ☐ Zeile „Seitenlamelle ↔“ nur anzeigen, wenn `capabilities.supportsWideVane` true ist (zweites Testgerät hat keine horizontale Lamelle, Sichtprüfung 2026-10-13). Die Höhenlamelle hängt entsprechend an `capabilities.hasAirDirection`. Optik (Entscheidung Sven): Karten bleiben gleich hoch, die Stelle bleibt leer.
 - ☐ Timer-Rad bedient `control.offTimer`, Countdown aus Restzeit-State (kein localStorage mehr)
 - ☐ +/- mit optimistischer Anzeige + Debounce
 - ☐ Gerätenamen escapen (XSS), Fonts (Fraunces, Work Sans, OFL) lokal
-- ☐ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz
+- ☐ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz (bis auf ausgeblendete Zeilen für fehlende Funktionen)
 - ☐ Unverändert übernehmen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split-Button **entfernen**, gibt es in MELCloud Home nicht), Timer-Rad, Online-Punkt, Störungs-Badge
 - ☐ Visueller Test: Desktop, Tablet, VIS-2-iframe
 
