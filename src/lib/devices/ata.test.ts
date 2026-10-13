@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { FakePort } from '../../../test/helpers/fake-adapter';
 import { CaptureLog, ManualScheduler, fixture } from '../../../test/helpers/fake-cloud';
 import { parseUserContext, type AtaControlRequest, type UserContext } from '../api/types';
-import { AtaDevices, OPTIMISTIC_GUARD_MS } from './ata';
+import { AtaDevices, OPTIMISTIC_GUARD_MS, SWING_RETRY_MAX, SWING_RETRY_WINDOW_MS } from './ata';
 
 const LIVING = '00000000-0000-4000-8000-000000000006';
 const SECOND = '00000000-0000-4000-8000-000000000008';
@@ -279,6 +279,116 @@ describe('devices/ata', () => {
                 ack: false,
             } as ioBroker.State);
             expect(env.scheduler.pending).to.have.length(0);
+        });
+    });
+
+    describe('horizontal swing workaround', () => {
+        const SWING = { unitId: LIVING, request: { vaneHorizontalDirection: 'Swing' } };
+
+        /**
+         * Sends queued commands, if any.
+         *
+         * @param env - Test environment
+         */
+        async function flush(env: ReturnType<typeof setup>): Promise<void> {
+            if (env.scheduler.has(800)) {
+                await env.scheduler.run(800);
+            }
+        }
+
+        /** Unit at position 4, user requests swing, the cloud stores it */
+        async function swingRequested(): Promise<ReturnType<typeof setup>> {
+            const env = setup();
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 12));
+            await flush(env);
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Swing' }));
+            return env;
+        }
+
+        it('sends swing again when the unit reports its old position', async () => {
+            const env = await swingRequested();
+            expect(env.sent).to.deep.equal([SWING]);
+
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING, SWING]);
+            expect(env.port.val(`${L}.control.vaneHorizontalDirection`)).to.equal(12);
+            expect(env.log.at('info').some(m => m.includes('sending swing again (1/3)'))).to.equal(true);
+        });
+
+        it('does not repeat before the cloud has stored the swing', async () => {
+            const env = setup();
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 12));
+            await flush(env);
+            // stale /context right after the command
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING]);
+        });
+
+        it('leaves a different position alone (changed in the official app)', async () => {
+            const env = await swingRequested();
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Left' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING]);
+        });
+
+        it('repeats from a stale swing on any fixed position', async () => {
+            // the cloud already shows swing, the unit stands somewhere else
+            const env = setup();
+            await env.devices.update(liveContext());
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 12));
+            await flush(env);
+            await env.devices.update(liveContext());
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Left' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING, SWING]);
+        });
+
+        it('gives up after the maximum number of repetitions', async () => {
+            const env = await swingRequested();
+            for (let i = 0; i < 4; i++) {
+                await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+                await flush(env);
+                await env.devices.update(withLiving({ vaneHorizontalDirection: 'Swing' }));
+            }
+            expect(env.sent).to.have.length(1 + SWING_RETRY_MAX);
+            expect(env.log.at('info').some(m => m.includes('giving up'))).to.equal(true);
+        });
+
+        it('stops after the retry window', async () => {
+            const env = await swingRequested();
+            env.advance(SWING_RETRY_WINDOW_MS);
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING]);
+        });
+
+        it('is cancelled by another horizontal command', async () => {
+            const env = await swingRequested();
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 4));
+            await flush(env);
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Swing' }));
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([
+                SWING,
+                { unitId: LIVING, request: { vaneHorizontalDirection: 'RightCentre' } },
+            ]);
+        });
+
+        it('forgets the request if the command fails', async () => {
+            const env = setup();
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            env.failNext();
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 12));
+            await flush(env);
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Swing' }));
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'RightCentre' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([SWING]);
         });
     });
 

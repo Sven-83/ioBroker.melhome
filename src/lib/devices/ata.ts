@@ -33,6 +33,39 @@ import type { TelemetrySink } from './telemetry';
 /** How long an optimistic value wins over a different value from /context */
 export const OPTIMISTIC_GUARD_MS = 120_000;
 
+/** How long the adapter keeps trying to get a requested horizontal swing applied (docs/api.md section 9.1) */
+export const SWING_RETRY_WINDOW_MS = 30 * 60_000;
+
+/** Maximum automatic repetitions of one horizontal swing request */
+export const SWING_RETRY_MAX = 3;
+
+/** ioBroker code of the horizontal swing */
+const HORIZONTAL_SWING = 12;
+
+/**
+ * A requested horizontal swing that the unit may not have applied yet.
+ * The cloud drops "Swing" until the unit reports again; the report then shows the old position.
+ */
+interface SwingWish {
+    /** Horizontal vane code reported before the request */
+    before: ioBroker.StateValue;
+    /** End of the retry window */
+    until: number;
+    /** Repetitions sent so far */
+    retries: number;
+    /** The cloud has shown "Swing" since the last request */
+    stored: boolean;
+}
+
+/**
+ * True for the fixed horizontal positions 1-5.
+ *
+ * @param code - Horizontal vane code
+ */
+function isFixedHorizontalPosition(code: ioBroker.StateValue): boolean {
+    return typeof code === 'number' && code >= 1 && code <= 5;
+}
+
 /** Narrow view of the adapter, so this module stays testable */
 export interface AdapterPort {
     /** Adapter namespace, e.g. melcloudhome.0 */
@@ -366,6 +399,8 @@ export class AtaDevices implements TelemetrySink {
     private readonly queue: CommandQueue;
     private readonly timers: OffTimers;
     private readonly missingLogged = new Set<string>();
+    /** unit id -> requested horizontal swing */
+    private readonly swingWishes = new Map<string, SwingWish>();
 
     /** @param options - Dependencies */
     public constructor(options: AtaDevicesOptions) {
@@ -416,6 +451,7 @@ export class AtaDevices implements TelemetrySink {
     public stop(): void {
         this.queue.stop();
         this.timers.stop();
+        this.swingWishes.clear();
     }
 
     /**
@@ -429,6 +465,7 @@ export class AtaDevices implements TelemetrySink {
             seen.add(unit.id);
             this.units.set(unit.id, unit);
             try {
+                this.checkSwingWish(unit);
                 await this.ensureObjects(unit);
                 await this.writeUnit(unit);
             } catch (error) {
@@ -481,6 +518,9 @@ export class AtaDevices implements TelemetrySink {
         if (!request) {
             await this.restore(unit, field as ControlField);
             return;
+        }
+        if (request.vaneHorizontalDirection !== undefined) {
+            this.trackSwingWish(unit, request);
         }
         // keep the user's value visible while the command waits in the queue
         const until = this.now() + OPTIMISTIC_GUARD_MS;
@@ -709,10 +749,79 @@ export class AtaDevices implements TelemetrySink {
         if (!unit) {
             return;
         }
+        if (request.vaneHorizontalDirection !== undefined) {
+            this.swingWishes.delete(unitId);
+        }
         for (const field of Object.keys(fieldsOfRequest(request)) as ControlField[]) {
             this.guards.delete(`${unitId}.${field}`);
             await this.restore(unit, field);
         }
+    }
+
+    /**
+     * Remembers a horizontal swing request, any other horizontal value cancels it.
+     *
+     * @param unit - Unit state before the request
+     * @param request - Control request of the user
+     */
+    private trackSwingWish(unit: AtaUnit, request: AtaControlRequest): void {
+        if (request.vaneHorizontalDirection !== 'Swing') {
+            this.swingWishes.delete(unit.id);
+            return;
+        }
+        this.swingWishes.set(unit.id, {
+            before: controlValue(unit, 'vaneHorizontalDirection'),
+            until: this.now() + SWING_RETRY_WINDOW_MS,
+            retries: 0,
+            stored: false,
+        });
+    }
+
+    /**
+     * Repeats a horizontal swing the unit did not apply: the cloud showed "Swing", then the unit
+     * reported its old fixed position again (docs/api.md section 9.1).
+     *
+     * @param unit - Unit state from /context
+     */
+    private checkSwingWish(unit: AtaUnit): void {
+        const wish = this.swingWishes.get(unit.id);
+        if (!wish) {
+            return;
+        }
+        if (this.now() >= wish.until) {
+            this.swingWishes.delete(unit.id);
+            return;
+        }
+        const reported = controlValue(unit, 'vaneHorizontalDirection');
+        if (reported === HORIZONTAL_SWING) {
+            wish.stored = true;
+            return;
+        }
+        if (!wish.stored || !isFixedHorizontalPosition(reported)) {
+            return;
+        }
+        if (isFixedHorizontalPosition(wish.before) && reported !== wish.before) {
+            // another position was chosen in the meantime (e.g. in the official app)
+            this.swingWishes.delete(unit.id);
+            return;
+        }
+        if (wish.retries >= SWING_RETRY_MAX) {
+            this.swingWishes.delete(unit.id);
+            this.log.info(`${unit.name}: the unit did not apply the horizontal swing - giving up`);
+            return;
+        }
+        wish.retries++;
+        wish.stored = false;
+        this.log.info(
+            `${unit.name}: the unit still reports horizontal vane position ${String(reported)} - ` +
+                `sending swing again (${wish.retries}/${SWING_RETRY_MAX})`,
+        );
+        this.guards.set(`${unit.id}.vaneHorizontalDirection`, {
+            value: HORIZONTAL_SWING,
+            until: this.now() + OPTIMISTIC_GUARD_MS,
+            pending: true,
+        });
+        this.queue.enqueue(unit.id, { vaneHorizontalDirection: 'Swing' });
     }
 
     /**

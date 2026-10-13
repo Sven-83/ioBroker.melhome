@@ -20,6 +20,8 @@ var ata_exports = {};
 __export(ata_exports, {
   AtaDevices: () => AtaDevices,
   OPTIMISTIC_GUARD_MS: () => OPTIMISTIC_GUARD_MS,
+  SWING_RETRY_MAX: () => SWING_RETRY_MAX,
+  SWING_RETRY_WINDOW_MS: () => SWING_RETRY_WINDOW_MS,
   buildUnitObjects: () => buildUnitObjects
 });
 module.exports = __toCommonJS(ata_exports);
@@ -29,6 +31,12 @@ var import_commands = require("./commands");
 var import_energy = require("./energy");
 var import_off_timer = require("./off-timer");
 const OPTIMISTIC_GUARD_MS = 12e4;
+const SWING_RETRY_WINDOW_MS = 30 * 6e4;
+const SWING_RETRY_MAX = 3;
+const HORIZONTAL_SWING = 12;
+function isFixedHorizontalPosition(code) {
+  return typeof code === "number" && code >= 1 && code <= 5;
+}
 const ROOT = "devices";
 const name = (en, de) => ({ en, de });
 function controlValue(unit, field) {
@@ -275,6 +283,8 @@ class AtaDevices {
   queue;
   timers;
   missingLogged = /* @__PURE__ */ new Set();
+  /** unit id -> requested horizontal swing */
+  swingWishes = /* @__PURE__ */ new Map();
   /** @param options - Dependencies */
   constructor(options) {
     var _a;
@@ -324,6 +334,7 @@ class AtaDevices {
   stop() {
     this.queue.stop();
     this.timers.stop();
+    this.swingWishes.clear();
   }
   /**
    * Processes a fresh /context.
@@ -336,6 +347,7 @@ class AtaDevices {
       seen.add(unit.id);
       this.units.set(unit.id, unit);
       try {
+        this.checkSwingWish(unit);
         await this.ensureObjects(unit);
         await this.writeUnit(unit);
       } catch (error) {
@@ -385,6 +397,9 @@ class AtaDevices {
     if (!request) {
       await this.restore(unit, field);
       return;
+    }
+    if (request.vaneHorizontalDirection !== void 0) {
+      this.trackSwingWish(unit, request);
     }
     const until = this.now() + OPTIMISTIC_GUARD_MS;
     for (const [guardField, value] of Object.entries(fieldsOfRequest(request))) {
@@ -585,10 +600,75 @@ class AtaDevices {
     if (!unit) {
       return;
     }
+    if (request.vaneHorizontalDirection !== void 0) {
+      this.swingWishes.delete(unitId);
+    }
     for (const field of Object.keys(fieldsOfRequest(request))) {
       this.guards.delete(`${unitId}.${field}`);
       await this.restore(unit, field);
     }
+  }
+  /**
+   * Remembers a horizontal swing request, any other horizontal value cancels it.
+   *
+   * @param unit - Unit state before the request
+   * @param request - Control request of the user
+   */
+  trackSwingWish(unit, request) {
+    if (request.vaneHorizontalDirection !== "Swing") {
+      this.swingWishes.delete(unit.id);
+      return;
+    }
+    this.swingWishes.set(unit.id, {
+      before: controlValue(unit, "vaneHorizontalDirection"),
+      until: this.now() + SWING_RETRY_WINDOW_MS,
+      retries: 0,
+      stored: false
+    });
+  }
+  /**
+   * Repeats a horizontal swing the unit did not apply: the cloud showed "Swing", then the unit
+   * reported its old fixed position again (docs/api.md section 9.1).
+   *
+   * @param unit - Unit state from /context
+   */
+  checkSwingWish(unit) {
+    const wish = this.swingWishes.get(unit.id);
+    if (!wish) {
+      return;
+    }
+    if (this.now() >= wish.until) {
+      this.swingWishes.delete(unit.id);
+      return;
+    }
+    const reported = controlValue(unit, "vaneHorizontalDirection");
+    if (reported === HORIZONTAL_SWING) {
+      wish.stored = true;
+      return;
+    }
+    if (!wish.stored || !isFixedHorizontalPosition(reported)) {
+      return;
+    }
+    if (isFixedHorizontalPosition(wish.before) && reported !== wish.before) {
+      this.swingWishes.delete(unit.id);
+      return;
+    }
+    if (wish.retries >= SWING_RETRY_MAX) {
+      this.swingWishes.delete(unit.id);
+      this.log.info(`${unit.name}: the unit did not apply the horizontal swing - giving up`);
+      return;
+    }
+    wish.retries++;
+    wish.stored = false;
+    this.log.info(
+      `${unit.name}: the unit still reports horizontal vane position ${String(reported)} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
+    );
+    this.guards.set(`${unit.id}.vaneHorizontalDirection`, {
+      value: HORIZONTAL_SWING,
+      until: this.now() + OPTIMISTIC_GUARD_MS,
+      pending: true
+    });
+    this.queue.enqueue(unit.id, { vaneHorizontalDirection: "Swing" });
   }
   /**
    * Writes the last known value back (with ack) after a rejected or failed command.
@@ -651,6 +731,8 @@ function escapeRegExp(text) {
 0 && (module.exports = {
   AtaDevices,
   OPTIMISTIC_GUARD_MS,
+  SWING_RETRY_MAX,
+  SWING_RETRY_WINDOW_MS,
   buildUnitObjects
 });
 //# sourceMappingURL=ata.js.map

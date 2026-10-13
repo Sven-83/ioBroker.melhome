@@ -58,6 +58,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - ☑ Energie erstes Gerät: erste Abfragen ohne Stundenwerte – kein Fehler, kaum Verbrauch und Werte kommen verzögert in der Cloud an (Rohantwort 21:10 enthielt sie)
   - ☑ 2026-10-13 Lüfter 3 → 2, Höhenlamelle 5 → 3, Seitenlamelle Swing → Mitte und zurück: je PUT 200, ack=true, Cloud nach Sperre + App/Gerät bestätigt
   - ☑ 2026-10-13 Seitenlamelle Swing: Ursache gefunden (Cloud verwirft Swing bis zum nächsten Gerätebericht, betrifft auch die offizielle App, api.md §9.1). Kein Adapterfehler.
+  - ◐ Swing-Umgehung eingebaut (`ata.ts`, `checkSwingWish`): Wunsch 30 min merken; zeigt `/context` erst Swing und dann wieder die alte Position, Swing erneut senden (max. 3×, Info-Log). 8 Unit-Tests. Live-Test steht aus.
   - ☐ Abschalt-Timer (1 min), danach Einschalten mit Modus
   - Hinweis: Windows 11 ohne `wmic` → `dev-server watch` stürzt ab (nodemon), `dev-server run` verwenden
 
@@ -65,7 +66,6 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☐ WebSocket-Push, Heartbeat, Reconnect mit Backoff
 - ☐ Automatischer Fallback auf Polling, Status-State
 - ☐ Geräteberichte (WS-Frames mit Wort-Strings, z. B. `VaneHorizontalDirection = "Left"`) als Ist-Wert übernehmen
-- ☐ Swing-Umgehung (api.md §9.1): Swing-Wunsch merken, bei neuem Ist-Wert ≠ Swing (WS oder `/context`) automatisch erneut senden, begrenzt (z. B. 30 min, max. 3×), Info-Log. Unit-Tests dazu. Ggf. vorgezogen in Phase 3, da auch mit Polling möglich.
 - ☐ README „Bekannte Einschränkungen“: Seitenlamelle Swing nach fester Position wird erst nach dem nächsten Gerätebericht übernommen (auch in der offiziellen App); der Adapter wiederholt automatisch
 
 ## Phase 4b – Jäger-Dashboard
