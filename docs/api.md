@@ -507,6 +507,20 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
 | WS-Echo für vertikales Swing (`6`?) | ✅ **`6`** bestätigt (Mitschnitt 2026-10-12, `test/fixtures/live/websocket-frames.json`) |
 | WebSocket allgemein | ✅ Verbindung mit Hash klappt. 12 Nachrichten in 240 s, alle `unitStateChanged` mit **genau einem** Setting, Feld `Data` (groß). Werte als Bool/Zahl: `Power` true/false, `SetTemperature` 17.5, `SetFanSpeed` 2, `VaneVerticalDirection` 6 (Swing) / 1, `VaneHorizontalDirection` 3/4/5 (= Centre/RightCentre/Right, passt zu §5.4). Echo kommt ~1 s nach der Änderung in der App. **Keine** verzögerten Geräteberichte (Wort-Strings) und kein `ActualFanSpeed` im Fenster beobachtet. → Bestätigt die Strategie: Frames nur als Auslöser für `/context`. |
 
+### 9.1 Steuer-Tests 2026-10-13 (dev-server, erstes Gerät, Svens OK)
+
+- Solltemperatur, Lüfter, Höhenlamelle, Seitenlamelle Position 1–5: PUT 200, WS-Echo sofort, Gerät setzt um,
+  `/context` bestätigt nach Ablauf der Optimistik-Sperre.
+- **Seitenlamelle Swing (WS-Echo `7`) und Auto (`0`) wirken am Gerät oft nicht** – unabhängig vom Absender:
+  Adapter, Web-App (`melcloudhome.com`) und Handy-App scheitern gleichermaßen, sobald vorher eine feste Position
+  gesetzt wurde. Nach Aus/Ein des Geräts wirkt Swing wieder (einmal reproduziert). Ein Web-Swing aus Position 3
+  hat einmal funktioniert (ungeklärt).
+- PUT-Body der Web-App ist **byte-identisch** zu unserem (alle 8 Felder, nur `vaneHorizontalDirection: "Swing"`).
+  Abstand Position → Swing (20 s, 63 s, 93 s) ist nicht die Ursache.
+- `/context` meldet danach dauerhaft `Swing`, obwohl das Gerät steht. Die Wahrheit kommt nur als **Gerätebericht**
+  über den WebSocket: `VaneHorizontalDirection = "Left"` (Wort-String, ~1–2 min später, mit `RoomTemperature`
+  im selben Frame). → Phase 4: Geräteberichte (Wort-Strings) als Ist-Wert auswerten, Abweichung vom Befehl loggen.
+
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),
 `frostProtection`/`overheatProtection` als Objekte `{active, enabled, min, max}`, Zeitpläne mit **kleingeschriebenen**
