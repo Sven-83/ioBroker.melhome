@@ -90,7 +90,8 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☑ Bedientest 2026-10-14 (Sven, echte Befehle): Ein/Aus, Modi, Solltemperatur, Lüfter, Lamellen-Positionen ✔. Befunde:
   - ☑ Timer sendete nichts: Bestätigen rundete auf 5 min (1 min → 0). Jetzt wird der angezeigte Minutenwert gesendet. Live: Timer + Countdown ✔
   - ☑ Lamelle Swing/Auto wirkt nach fester Position nicht – Cloud-Verhalten, auch mit der offiziellen App (api.md §9.1). Die Wiederholung gilt jetzt auch für Auto (beide Lamellen).
-  - ☑ „Heizen schaltet aus“: Moduskonflikt der Multi-Split-Anlage (anderes Gerät kühlte). Neues Badge „Moduskonflikt“ bei eingeschalteten Multi-Split-Geräten eines Gebäudes mit Heizen gegen Kühlen/Trocknen (`core.modeConflicts`). ☐ Live-Test mit beiden Räumen
+  - ☐ „Heizen schaltet aus“ – auch am selben Gerät allein (Sven), also **kein** Moduskonflikt. Cloud meldet weiter `power` an, PUT `{"operationMode":"Heat"}` mit 200 angenommen. Verdacht: kein Heizbedarf (Raum 22 °C, Soll 21 °C) bzw. Mitsubishi-Anlaufschutz beim Heizen (3–5 min). Test offen: Heizen mit Soll 25 °C, 5 min warten, Anzeige der App vergleichen.
+  - ☑ Badge „Moduskonflikt“ (Entscheidung Sven: bleibt): eingeschaltete Multi-Split-Geräte eines Gebäudes mit Heizen gegen Kühlen/Trocknen (`core.modeConflicts`). ☐ Live-Test mit beiden Räumen
 - Dry-Run-Test im Browser: Edge headless über CDP, `setState` des Sockets wird abgefangen (kein Befehl an die Geräte)
 - ☑ Unit-Tests `src/dashboard.test.ts` (13) für `core.js`
 - Hinweis: Der web-Adapter liefert `system.config` aus seinem Start-Zwischenspeicher – Sprachwechsel greift erst nach Neustart der web-Instanz
