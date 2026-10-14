@@ -99,7 +99,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 ## Phase 5 – Qualität
 - ☐ Unit- + Integrationstests grün, Coverage sinnvoll
 - ☐ Adapter-Checker ohne Errors
-- ☐ Audit mit Universal Audit Template (+ Auth, WebSocket, Rate-Limits, Dashboard-XSS)
+- ☐ Audit mit Universal Audit Template (+ Auth, WebSocket, Rate-Limits, Dashboard-XSS) – ☑ Template liegt vor (`Universal-Audit-Template.md` v1.2)
 
 ## Phase 6 – Release
 - ☐ README DE/EN, Changelog, Screenshots
