@@ -406,6 +406,7 @@ describe('devices/ata', () => {
             await env.scheduler.run(10_000);
             expect(env.port.val(`${L}.control.offTimer`)).to.equal(0);
             expect(env.port.val(`${L}.control.offTimerEnd`)).to.equal(0);
+            expect(env.log.at('info')).to.include('Off timer of Living room elapsed - switching off');
             await env.scheduler.run(800);
             expect(env.sent).to.deep.equal([{ unitId: LIVING, request: { power: false } }]);
         });

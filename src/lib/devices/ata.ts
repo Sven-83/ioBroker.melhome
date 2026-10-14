@@ -424,6 +424,7 @@ export class AtaDevices implements TelemetrySink {
             scheduler: options.scheduler,
             log: options.log,
             now: this.now,
+            nameOf: unitId => this.units.get(unitId)?.name ?? unitId,
             onExpire: unitId => this.switchOffByTimer(unitId),
             onUpdate: (unitId, remaining, end) => this.writeTimer(unitId, remaining, end),
         });

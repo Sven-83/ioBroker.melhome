@@ -60,7 +60,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - ☑ 2026-10-13 Seitenlamelle Swing: Ursache gefunden (Cloud verwirft Swing bis zum nächsten Gerätebericht, betrifft auch die offizielle App, api.md §9.1). Kein Adapterfehler.
   - ☑ Swing-Umgehung (`ata.ts`, `checkSwingWish`): Wunsch 30 min merken; zeigt `/context` erst Swing und dann wieder die alte Position, Swing erneut senden (max. 3×, Info-Log mit Klartext-Position). 8 Unit-Tests. **Live-Test 2026-10-14 bestanden** (api.md §9.1).
   - ☑ 2026-10-14 geprüft (nur lesend): Echte Lamellenstellung ist **nicht** abfragbar. Telemetrie nimmt nur `rssi` an, ein „Gerät soll sich melden“-Befehl ist nicht bekannt (api.md §9.1). Umgehung bleibt.
-  - ☐ Abschalt-Timer (1 min), danach Einschalten mit Modus
+  - ☑ 2026-10-14 Abschalt-Timer 1 min: nach 60 s PUT `{power:false}` 200, Timer-States auf 0, Gerät aus. Einschalten per Adapter sendet `{power:true, operationMode:"Cool"}` (200). Log-Meldungen von Queue/Timer nennen jetzt den Gerätenamen statt der UUID.
   - Hinweis: Windows 11 ohne `wmic` → `dev-server watch` stürzt ab (nodemon), `dev-server run` verwenden
 
 ## Phase 4 – Echtzeit

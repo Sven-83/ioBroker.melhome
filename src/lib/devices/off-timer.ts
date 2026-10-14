@@ -21,6 +21,8 @@ export interface OffTimerOptions {
     log: Logger;
     /** Clock (tests) */
     now?: () => number;
+    /** Display name of a unit for log messages (defaults to the UUID) */
+    nameOf?: (unitId: string) => string;
     /** Timer elapsed - switch the unit off */
     onExpire: (unitId: string) => void | Promise<void>;
     /**
@@ -42,6 +44,7 @@ export class OffTimers {
     private readonly options: OffTimerOptions;
     private readonly now: () => number;
     private readonly tickMs: number;
+    private readonly nameOf: (unitId: string) => string;
     private readonly ends = new Map<string, number>();
     private tick: unknown;
     private stopped = false;
@@ -51,6 +54,7 @@ export class OffTimers {
         this.options = options;
         this.now = options.now ?? Date.now;
         this.tickMs = options.tickMs ?? TICK_MS;
+        this.nameOf = options.nameOf ?? (unitId => unitId);
     }
 
     /**
@@ -81,7 +85,7 @@ export class OffTimers {
     public async cancel(unitId: string): Promise<void> {
         const had = this.ends.delete(unitId);
         if (had) {
-            this.options.log.debug(`Off timer of unit ${unitId} cancelled`);
+            this.options.log.debug(`Off timer of ${this.nameOf(unitId)} cancelled`);
         }
         await this.options.onUpdate(unitId, 0, 0);
     }
@@ -102,19 +106,19 @@ export class OffTimers {
             await this.options.onUpdate(unitId, Math.ceil((endTime - now) / 1000), endTime);
             this.ensureTick();
             this.options.log.info(
-                `Off timer of unit ${unitId} restored (${Math.ceil((endTime - now) / 60_000)} min left)`,
+                `Off timer of ${this.nameOf(unitId)} restored (${Math.ceil((endTime - now) / 60_000)} min left)`,
             );
             return;
         }
         await this.options.onUpdate(unitId, 0, 0);
         if (now - endTime <= EXPIRED_GRACE_MS) {
             this.options.log.info(
-                `Off timer of unit ${unitId} expired while the adapter was stopped - switching off now`,
+                `Off timer of ${this.nameOf(unitId)} expired while the adapter was stopped - switching off now`,
             );
             await this.options.onExpire(unitId);
         } else {
             this.options.log.info(
-                `Off timer of unit ${unitId} expired long ago while the adapter was stopped - ignored`,
+                `Off timer of ${this.nameOf(unitId)} expired long ago while the adapter was stopped - ignored`,
             );
         }
     }
@@ -157,7 +161,7 @@ export class OffTimers {
             if (end <= now) {
                 this.ends.delete(unitId);
                 await this.options.onUpdate(unitId, 0, 0);
-                this.options.log.info(`Off timer of unit ${unitId} elapsed - switching off`);
+                this.options.log.info(`Off timer of ${this.nameOf(unitId)} elapsed - switching off`);
                 await this.options.onExpire(unitId);
             } else {
                 await this.options.onUpdate(unitId, Math.ceil((end - now) / 1000), end);

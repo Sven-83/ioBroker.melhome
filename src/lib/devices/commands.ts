@@ -160,12 +160,13 @@ export class CommandQueue {
             return;
         }
         const { log, send, getUnit, onAccepted, onFailed, onBatchDone, sleep } = this.options;
+        const name = getUnit(unitId)?.name ?? unitId;
 
         let requests: AtaControlRequest[];
         try {
             requests = planRequests(command, getUnit(unitId));
         } catch (error) {
-            log.warn(`Command for unit ${unitId} not sent: ${describeError(error)}`);
+            log.warn(`Command for ${name} not sent: ${describeError(error)}`);
             await onFailed(unitId, command, error);
             onBatchDone(unitId);
             return;
@@ -182,13 +183,13 @@ export class CommandQueue {
                 }
                 try {
                     await send(unitId, request);
-                    log.debug(`Command for unit ${unitId} accepted: ${JSON.stringify(request)}`);
+                    log.debug(`Command for ${name} accepted: ${JSON.stringify(request)}`);
                     await onAccepted(unitId, request);
                 } catch (error) {
                     if (this.stopped) {
                         return;
                     }
-                    log.warn(`Command for unit ${unitId} failed: ${describeError(error)}`);
+                    log.warn(`Command for ${name} failed: ${describeError(error)}`);
                     await onFailed(unitId, request, error);
                 }
             }
