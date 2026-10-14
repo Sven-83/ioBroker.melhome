@@ -52,7 +52,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Abschalt-Timer im Adapter (max. 360 min). Die Endzeit steht in `offTimerEnd` und übersteht einen Neustart. Ist er während der Pause abgelaufen, wird bis 30 min später noch ausgeschaltet.
 - ☑ Telemetrie alle 30 min: Energie, WLAN-Signal, Außentemperatur. Fehler beeinflussen `info.connection` nicht.
 - ☑ Unit-Tests (134 gesamt), u. a. Objektbaum aus den echten Daten, Befehlsfluss, Timer-Neustart
-- ◐ Live-Test mit dem dev-server: erst nur lesen, dann Befehle **nach OK von Sven**
+- ☑ Live-Test mit dem dev-server: erst nur lesen, dann Befehle **nach OK von Sven** (abgeschlossen 2026-10-14)
   - ☑ 2026-10-13 lesend: Login, Objektbaum beider Geräte, Werte = App, Seitenlamelle nur beim Wohnraum schreibbar, Debug-Log ohne Geheimnisse, keine Warnungen
   - ☑ 2026-10-13 Befehl Solltemperatur 17 → 17,5 → 17 °C: PUT 200, ack=true, App und Cloud-Abfrage nach Ablauf der Sperre bestätigen den Wert
   - ☑ Energie erstes Gerät: erste Abfragen ohne Stundenwerte – kein Fehler, kaum Verbrauch und Werte kommen verzögert in der Cloud an (Rohantwort 21:10 enthielt sie)
