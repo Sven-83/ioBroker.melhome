@@ -6,5 +6,17 @@
     "Real-time updates (WebSocket)": "Real-time updates (WebSocket)",
     "Polling is used as fallback if the real-time connection fails": "Polling is used as fallback if the real-time connection fails",
     "Polling interval": "Polling interval",
-    "Seconds, minimum 60": "Seconds, minimum 60"
+    "Seconds, minimum 60": "Seconds, minimum 60",
+    "Dashboard": "Dashboard",
+    "The dashboard is served by the web adapter at /melcloudhome/index.html": "The dashboard is served by the web adapter at /melcloudhome/index.html",
+    "Room icons": "Room icons",
+    "Unit": "Unit",
+    "Icon": "Icon",
+    "Automatic": "Automatic",
+    "Armchair (living room)": "Armchair (living room)",
+    "Bed (bedroom)": "Bed (bedroom)",
+    "Desk (office)": "Desk (office)",
+    "Table (dining room)": "Table (dining room)",
+    "Teddy bear (nursery)": "Teddy bear (nursery)",
+    "Indoor unit": "Indoor unit"
 }

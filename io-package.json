@@ -82,13 +82,25 @@
             {
                 "admin": ">=7.0.23"
             }
-        ]
+        ],
+        "messagebox": true,
+        "localLinks": {
+            "_default": {
+                "link": "%web_protocol%://%ip%:%web_port%/melcloudhome/index.html",
+                "intro": true,
+                "name": {
+                    "en": "Climate dashboard",
+                    "de": "Klima-Dashboard"
+                }
+            }
+        }
     },
     "native": {
         "email": "",
         "password": "",
         "pollInterval": 60,
-        "realtime": true
+        "realtime": true,
+        "roomIcons": []
     },
     "encryptedNative": [
         "password"

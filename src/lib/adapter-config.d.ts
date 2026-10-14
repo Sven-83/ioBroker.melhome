@@ -12,6 +12,8 @@ declare global {
             pollInterval: number;
             /** Use WebSocket push; polling stays active as fallback */
             realtime: boolean;
+            /** Dashboard room icon per unit */
+            roomIcons: { unit: string; icon: string }[];
         }
     }
 }

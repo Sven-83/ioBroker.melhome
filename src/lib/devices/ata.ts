@@ -14,6 +14,7 @@ import {
     ACTUAL_FAN_SPEED_CODES,
     FAN_SPEED_CODES,
     MODE_CODES,
+    ROOM_ICONS,
     VANE_HORIZONTAL_CODES,
     VANE_VERTICAL_CODES,
     actualFanSpeedStates,
@@ -24,6 +25,7 @@ import {
     overallTemperatureLimits,
     toCode,
     vaneStates,
+    roomIcon,
 } from '../mapping';
 import { CommandQueue } from './commands';
 import { applyEnergy, restoreEnergyTrackerData, startOfLocalDay, type EnergyTrackerData } from './energy';
@@ -110,6 +112,8 @@ export interface AtaDevicesOptions {
     debounceMs?: number;
     /** Gap between requests to one unit (tests) */
     gapMs?: number;
+    /** Dashboard room icon per unit id (instance settings) */
+    roomIcons?: Readonly<Record<string, string>>;
 }
 
 type ControlField =
@@ -230,6 +234,12 @@ export function buildUnitObjects(
         role: 'indicator.maintenance.alarm',
     });
     state('info.errorCode', { name: name('Error code', 'Fehlercode'), type: 'string', role: 'text' });
+    state('info.icon', {
+        name: name('Dashboard room icon', 'Dashboard-Raumsymbol'),
+        type: 'string',
+        role: 'text',
+        states: Object.fromEntries(ROOM_ICONS.map(icon => [icon, icon])),
+    });
     state('info.roomTemp', {
         name: name('Room temperature', 'Raumtemperatur'),
         type: 'number',
@@ -430,6 +440,11 @@ export class AtaDevices implements TelemetrySink {
         });
     }
 
+    /** Known units for the instance settings (id and room name) */
+    public listUnits(): { id: string; name: string }[] {
+        return [...this.units.values()].map(unit => ({ id: unit.id, name: unit.name }));
+    }
+
     /** Restores persisted off timers (call once at startup) */
     public async restoreTimers(): Promise<void> {
         const states = await this.port.getStates(`${ROOT}.*.control.offTimerEnd`);
@@ -608,6 +623,7 @@ export class AtaDevices implements TelemetrySink {
         await this.write(`${base}.info.deviceOnline`, unit.isConnected);
         await this.write(`${base}.info.hasError`, unit.isInError);
         await this.write(`${base}.info.errorCode`, unit.errorCode);
+        await this.write(`${base}.info.icon`, roomIcon(this.options.roomIcons?.[unit.id]));
         await this.write(`${base}.info.roomTemp`, unit.roomTemperature);
         await this.write(`${base}.info.actualFanSpeed`, toCode(ACTUAL_FAN_SPEED_CODES, unit.actualFanSpeed));
         await this.write(`${base}.info.lastUpdate`, now);

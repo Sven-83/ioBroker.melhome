@@ -223,3 +223,15 @@ export function clampTemperature(value: number, limits: TemperatureLimits): numb
     const rounded = Math.round(value / limits.step) * limits.step;
     return Math.min(limits.max, Math.max(limits.min, Number(rounded.toFixed(1))));
 }
+
+/** Room icons the dashboard knows; "auto" lets the dashboard pick its default */
+export const ROOM_ICONS = ['auto', 'armchair', 'bed', 'desk', 'dining', 'child', 'unit'] as const;
+
+/**
+ * Validated room icon from the instance settings.
+ *
+ * @param value - Configured icon, may be missing or unknown
+ */
+export function roomIcon(value: unknown): string {
+    return typeof value === 'string' && (ROOM_ICONS as readonly string[]).includes(value) ? value : 'auto';
+}

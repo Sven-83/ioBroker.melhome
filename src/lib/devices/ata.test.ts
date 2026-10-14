@@ -34,7 +34,7 @@ function withLiving(changes: Partial<UserContext['ataUnits'][number]>): UserCont
     return context;
 }
 
-function setup(): {
+function setup(roomIcons?: Record<string, string>): {
     devices: AtaDevices;
     port: FakePort;
     scheduler: ManualScheduler;
@@ -59,6 +59,7 @@ function setup(): {
         scheduler,
         sleep: () => Promise.resolve(),
         now: () => clock,
+        roomIcons,
         requestRefresh: () => {
             env.refreshes++;
         },
@@ -95,6 +96,17 @@ function setup(): {
 
 describe('devices/ata', () => {
     describe('object tree', () => {
+        it('writes the configured room icon, unknown or missing ones as auto', async () => {
+            const { devices, port } = setup({ [LIVING]: 'bed' });
+            await devices.update(liveContext());
+            expect(port.val(`${L}.info.icon`)).to.equal('bed');
+            expect(devices.listUnits().find(u => u.id === LIVING)?.name).to.equal('Living room');
+
+            const other = setup({ [LIVING]: '<script>' });
+            await other.devices.update(liveContext());
+            expect(other.port.val(`${L}.info.icon`)).to.equal('auto');
+        });
+
         it('creates device, channels and states keyed by the unit UUID', async () => {
             const { devices, port } = setup();
             await devices.update(liveContext());

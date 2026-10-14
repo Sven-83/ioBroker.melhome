@@ -14,6 +14,7 @@ import {
     temperatureLimits,
     toCode,
     vaneStates,
+    roomIcon,
 } from './mapping';
 
 const caps = (overrides: Partial<AtaCapabilities> = {}): AtaCapabilities => ({
@@ -83,5 +84,12 @@ describe('mapping', () => {
         expect(clampTemperature(12, cool)).to.equal(16);
         expect(clampTemperature(40, cool)).to.equal(31);
         expect(clampTemperature(12, temperatureLimits(caps(), 'Heat'))).to.equal(12);
+    });
+
+    it('accepts only known room icons', () => {
+        expect(roomIcon('bed')).to.equal('bed');
+        expect(roomIcon('sauna')).to.equal('auto');
+        expect(roomIcon(undefined)).to.equal('auto');
+        expect(roomIcon(3)).to.equal('auto');
     });
 });

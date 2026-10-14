@@ -35,6 +35,7 @@ class Melcloudhome extends utils.Adapter {
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
         this.on('unload', this.onUnload.bind(this));
+        this.on('message', this.onMessage.bind(this));
     }
 
     /**
@@ -83,6 +84,11 @@ class Melcloudhome extends utils.Adapter {
             scheduler,
             sleep: ms => http.abortableSleep(ms),
             requestRefresh: () => this.connection?.requestRefresh(),
+            roomIcons: Object.fromEntries(
+                (Array.isArray(this.config.roomIcons) ? this.config.roomIcons : [])
+                    .filter(entry => entry && typeof entry.unit === 'string')
+                    .map(entry => [entry.unit, entry.icon]),
+            ),
         });
         await this.devices.restoreTimers();
 
@@ -180,6 +186,23 @@ class Melcloudhome extends utils.Adapter {
         } catch (error) {
             this.log.error(`Error during unloading: ${(error as Error).message}`);
             callback();
+        }
+    }
+
+    /**
+     * Answers requests of the instance settings.
+     *
+     * @param obj - Message from admin
+     */
+    private onMessage(obj: ioBroker.Message): void {
+        if (obj?.command === 'getUnits' && obj.callback) {
+            const units = this.devices?.listUnits() ?? [];
+            this.sendTo(
+                obj.from,
+                obj.command,
+                units.map(unit => ({ value: unit.id, label: unit.name })),
+                obj.callback,
+            );
         }
     }
 

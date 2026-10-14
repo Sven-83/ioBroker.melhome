@@ -57,6 +57,77 @@
             "md": 6,
             "lg": 4,
             "xl": 4
+        },
+        "_headerDashboard": {
+            "type": "header",
+            "text": "Dashboard",
+            "size": 2,
+            "newLine": true
+        },
+        "_dashboardHint": {
+            "type": "staticText",
+            "text": "The dashboard is served by the web adapter at /melcloudhome/index.html",
+            "newLine": true,
+            "xs": 12
+        },
+        "roomIcons": {
+            "type": "table",
+            "label": "Room icons",
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 8,
+            "lg": 6,
+            "xl": 6,
+            "noDelete": false,
+            "items": [
+                {
+                    "type": "selectSendTo",
+                    "attr": "unit",
+                    "title": "Unit",
+                    "command": "getUnits",
+                    "jsonData": "{}",
+                    "width": "60%",
+                    "noTranslation": true
+                },
+                {
+                    "type": "select",
+                    "attr": "icon",
+                    "title": "Icon",
+                    "width": "40%",
+                    "default": "auto",
+                    "options": [
+                        {
+                            "label": "Automatic",
+                            "value": "auto"
+                        },
+                        {
+                            "label": "Armchair (living room)",
+                            "value": "armchair"
+                        },
+                        {
+                            "label": "Bed (bedroom)",
+                            "value": "bed"
+                        },
+                        {
+                            "label": "Desk (office)",
+                            "value": "desk"
+                        },
+                        {
+                            "label": "Table (dining room)",
+                            "value": "dining"
+                        },
+                        {
+                            "label": "Teddy bear (nursery)",
+                            "value": "child"
+                        },
+                        {
+                            "label": "Indoor unit",
+                            "value": "unit"
+                        }
+                    ]
+                }
+            ]
         }
     }
 }
