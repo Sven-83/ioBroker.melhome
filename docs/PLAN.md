@@ -70,7 +70,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ README „Bekannte Einschränkungen“ (DE/EN): Seitenlamelle Swing, befohlene vs. übernommene Werte
 - ☑ 2026-10-14 live: Verbindung + `info.realtime`, kein Hash im Log; Einschalten in der App → WS-Nachricht 10:16:44 → Abruf 10:16:47 → `control.power` true (3 s statt bis 60 s)
 - ☑ 2026-10-14 live: Swing-Umgehung mit WS – Wiederholung 2 s nach dem Gerätebericht statt bis 60 s. Beobachtet: ein veralteter Bericht („Left“ bei laufendem Swing) löst eine harmlose Wiederholung aus (api.md §9.1).
-- ☐ Live: Reconnect nach 2-h-Trennung im Log (ohne Info/Warnung)
+- ☑ 2026-10-14 live: Trennung 11:43:58 (Code 1006, nach ~1 h 30 min, nicht genau 2 h) → neuer Hash → wieder offen 11:44:00 (1,8 s), nur Debug-Log
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`
