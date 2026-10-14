@@ -74,19 +74,21 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`
-- ☐ Nach `www/` übernehmen; Auslieferung über web-Adapter (`/melcloudhome/`)
-- ☐ Datenzugriff: simple-api → `@iobroker/socket-client` (Auth + Live-Subscriptions statt Polling)
-- ☐ Geräte automatisch aus Objektbaum, keine hartcodierten IDs/Hosts
-- ☐ Raum-Icons (Sessel, Bett, …) als Icon-Set, Zuordnung pro Gerät aus Adapter-Config
-- ☐ Wertecodes = Dashboard-Codes (klassische MELCloud, siehe api.md §5), Übersetzung nur im Adapter (`mapping.ts`), kein Wissen über MELCloud-Home-Codes im Frontend
-- ☐ Temperaturbereich und Lüfterstufen aus Geräte-Fähigkeiten statt hart (16–31 °C, 5 Stufen)
-- ☐ Zeile „Seitenlamelle ↔“ nur anzeigen, wenn `capabilities.supportsWideVane` true ist (zweites Testgerät hat keine horizontale Lamelle, Sichtprüfung 2026-10-13). Die Höhenlamelle hängt entsprechend an `capabilities.hasAirDirection`. Optik (Entscheidung Sven): Karten bleiben gleich hoch, die Stelle bleibt leer.
-- ☐ Timer-Rad bedient `control.offTimer`, Countdown aus Restzeit-State (kein localStorage mehr)
-- ☐ +/- mit optimistischer Anzeige + Debounce
-- ☐ Gerätenamen escapen (XSS), Fonts (Fraunces, Work Sans, OFL) lokal
-- ☐ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz (bis auf ausgeblendete Zeilen für fehlende Funktionen)
-- ☐ Unverändert übernehmen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split-Button **entfernen**, gibt es in MELCloud Home nicht), Timer-Rad, Online-Punkt, Störungs-Badge
-- ☐ Visueller Test: Desktop, Tablet, VIS-2-iframe
+- ☑ Nach `www/` übernommen (`index.html`, `dashboard.css`, `js/core.js` Logik, `js/app.js` DOM/Socket); web-Adapter liefert `/melcloudhome/index.html`, Admin-Link per `localLinks`
+- ☑ Datenzugriff: Socket-Client des web-Adapters (`../lib/js/socket.io.js`, gleiche Origin, Login des web-Adapters gilt), `getStates` + `subscribe`, Befehle per `setState` ack=false
+- ☑ Geräte automatisch aus Objektbaum (`getObjectView` device), Instanz per `?instance=N`
+- ☑ Raum-Icons (Sessel, Bett, Schreibtisch, Tisch, Teddy, Innengerät): Tabelle in den Instanz-Einstellungen (`selectSendTo` getUnits) → State `info.icon`; „auto“ = Sessel für das erste, Bett für weitere Geräte
+- ☑ Wertecodes = Dashboard-Codes (klassische MELCloud, siehe api.md §5), Übersetzung nur im Adapter (`mapping.ts`), kein Wissen über MELCloud-Home-Codes im Frontend
+- ☑ Temperaturbereich je Modus aus `capabilities.*`, Modi/Lüfterstufen/Lamellen aus `common.states` der control-States
+- ☑ Zeile „Seitenlamelle ↔“ nur anzeigen, wenn `capabilities.supportsWideVane` true ist (zweites Testgerät hat keine horizontale Lamelle, Sichtprüfung 2026-10-13). Die Höhenlamelle hängt entsprechend an `capabilities.hasAirDirection`. Optik (Entscheidung Sven): Karten bleiben gleich hoch, die Stelle bleibt leer.
+- ☑ Timer-Rad bedient `control.offTimer` (schaltet bei Bedarf vorher ein), Countdown aus `control.offTimerEnd`, kein localStorage
+- ☑ +/- mit optimistischer Anzeige + 600 ms Debounce, übrige Klicks sofort mit optimistischer Markierung
+- ☑ Cloud-Strings nur per `textContent`, `innerHTML` nur für konstante SVGs; Fonts (Fraunces opsz, Work Sans, OFL) lokal in `www/fonts/`
+- ☑ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz (bis auf ausgeblendete Zeilen für fehlende Funktionen)
+- ☑ Unverändert übernommen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split-Button **entfernen**, gibt es in MELCloud Home nicht), Timer-Rad, Online-Punkt, Störungs-Badge
+- ◐ Visueller Test 2026-10-14 (dev-server mit web 9.1.14, Edge headless): 900 px, 768 px, 375 px, DE + EN, Werte = States ✔. Offen: Bedientest im Browser (echte Befehle, nach OK), VIS-2-iframe auf dem Produktivsystem
+- ☑ Unit-Tests `src/dashboard.test.ts` (12) für `core.js`
+- Hinweis: Der web-Adapter liefert `system.config` aus seinem Start-Zwischenspeicher – Sprachwechsel greift erst nach Neustart der web-Instanz
 
 ## Phase 5 – Qualität
 - ☐ Unit- + Integrationstests grün, Coverage sinnvoll

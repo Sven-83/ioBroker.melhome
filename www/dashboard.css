@@ -467,6 +467,16 @@ footer{
 }
 
 /* ---- additions for the adapter dashboard ---- */
+/* columns may shrink below their content width (phones), icons wrap instead */
+.cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.card {
+    min-width: 0;
+}
+.modes {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
 button.reset {
     font: inherit;
     padding: 0;
@@ -535,7 +545,7 @@ html.scroll .wrap {
         min-height: 100%;
     }
     .cards, .cards.count-1 {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         grid-auto-rows: auto;
     }
 }
