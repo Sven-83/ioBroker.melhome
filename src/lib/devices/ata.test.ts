@@ -336,6 +336,24 @@ describe('devices/ata', () => {
             ).to.equal(true);
         });
 
+        it('repeats a vane auto the same way', async () => {
+            const env = setup();
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Left' }));
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneHorizontalDirection`, 0));
+            await flush(env);
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Auto' }));
+            const AUTO = { unitId: LIVING, request: { vaneHorizontalDirection: 'Auto' } };
+            expect(env.sent).to.deep.equal([AUTO]);
+
+            await env.devices.update(withLiving({ vaneHorizontalDirection: 'Left' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([AUTO, AUTO]);
+            expect(env.port.val(`${L}.control.vaneHorizontalDirection`)).to.equal(0);
+            expect(env.log.at('info').some(m => m.includes('vane position Left - sending auto again (1/3)'))).to.equal(
+                true,
+            );
+        });
+
         it('sends swing again when the unit reports its old position', async () => {
             const env = await swingRequested();
             expect(env.sent).to.deep.equal([SWING]);

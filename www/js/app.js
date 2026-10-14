@@ -190,7 +190,7 @@
       <div>
         <div class="name"><span class="room-icon"></span><span class="room-name"></span></div>
         <div class="status"><span class="dot"></span><span class="status-text">–</span>
-          <span class="err-badge"></span>
+          <span class="err-badge"></span><span class="err-badge conflict-badge"></span>
         </div>
       </div>
       <div class="head-actions">
@@ -252,6 +252,8 @@
         q('.target-label').textContent = C.t(lang, 'target');
         q('.room-temp .lbl').textContent = C.t(lang, 'room');
         q('.err-badge').textContent = C.t(lang, 'error');
+        q('.conflict-badge').textContent = C.t(lang, 'modeConflict');
+        q('.conflict-badge').title = C.t(lang, 'modeConflictHint');
         q('.row-fan .lbl').textContent = C.t(lang, 'fan');
         q('.row-vane-h .lbl').textContent = C.t(lang, 'vaneH');
         q('.row-vane-v .lbl').textContent = C.t(lang, 'vaneV');
@@ -438,7 +440,7 @@
         q('.power-toggle').classList.toggle('on', power);
         q('.power-toggle').setAttribute('aria-checked', String(power));
         q('.dot').classList.toggle('off', online === false);
-        q('.err-badge').classList.toggle('show', value(unitId, 'info.hasError') === true);
+        q('.err-badge:not(.conflict-badge)').classList.toggle('show', value(unitId, 'info.hasError') === true);
         element.classList.toggle('offline', online === false);
 
         const range = rangeOf(unitId);
@@ -463,6 +465,24 @@
         q('.row-vane-h').classList.toggle('row-hidden', value(unitId, 'capabilities.supportsWideVane') !== true);
         q('.row-vane-v').classList.toggle('row-hidden', value(unitId, 'capabilities.hasAirDirection') === false);
 
+        // a mode change of one unit can start or end a conflict of the others
+        cards.forEach(updateStatus);
+    }
+
+    function conflicts() {
+        return C.modeConflicts(
+            [...cards.keys()].map(id => ({
+                id,
+                multiSplit: value(id, 'capabilities.isMultiSplit'),
+                building: value(id, 'info.building'),
+                power: value(id, 'control.power'),
+                mode: value(id, 'control.mode'),
+            })),
+        );
+    }
+
+    function updateStatus(ctx) {
+        ctx.q('.conflict-badge').classList.toggle('show', conflicts().has(ctx.unitId));
         updateCountdown(ctx);
     }
 
@@ -499,7 +519,7 @@
         socket.on('reconnect', load);
         socket.on('disconnect', () => showBanner('disconnected'));
         socket.on('stateChange', onStateChange);
-        setInterval(() => cards.forEach(updateCountdown), 1000);
+        setInterval(() => cards.forEach(updateStatus), 1000);
     }
 
     start();

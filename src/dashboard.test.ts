@@ -83,8 +83,9 @@ describe('dashboard core', () => {
         expect(core.rotateTimer(10, 170, -170)).to.be.closeTo(13.33, 0.01); // across 180°
         expect(core.rotateTimer(5, 90, 0)).to.equal(0);
         expect(core.rotateTimer(358, 0, 90)).to.equal(360);
-        expect(core.confirmedTimerMinutes(32.4)).to.equal(30);
-        expect(core.confirmedTimerMinutes(2)).to.equal(0);
+        expect(core.confirmedTimerMinutes(32.4)).to.equal(32);
+        expect(core.confirmedTimerMinutes(1.2)).to.equal(1); // shown as "1 Min"
+        expect(core.confirmedTimerMinutes(0.4)).to.equal(0);
         expect(core.angleDeg(0, 0, 0, -1)).to.equal(0);
         expect(core.angleDeg(0, 0, 1, 0)).to.equal(90);
     });
@@ -94,6 +95,27 @@ describe('dashboard core', () => {
         expect(core.statusKey({ online: true, power: true })).to.equal('running');
         expect(core.statusKey({ online: true, power: false })).to.equal('ready');
         expect(core.statusKey({ online: null, power: null })).to.equal('ready');
+    });
+
+    it('finds heat/cool conflicts of running multi-split units in one building', () => {
+        type UnitValues = { id: string; multiSplit: unknown; building: unknown; power: unknown; mode: unknown };
+        const unit = (id: string, mode: number, extra: Record<string, unknown> = {}): UnitValues => ({
+            id,
+            multiSplit: true,
+            building: 'B',
+            power: true,
+            mode,
+            ...extra,
+        });
+        expect([...core.modeConflicts([unit('a', 1), unit('b', 3)])]).to.have.members(['a', 'b']);
+        expect([...core.modeConflicts([unit('a', 1), unit('b', 2)])]).to.have.members(['a', 'b']);
+        expect(core.modeConflicts([unit('a', 3), unit('b', 2)]).size).to.equal(0); // both cool
+        expect(core.modeConflicts([unit('a', 1), unit('b', 7)]).size).to.equal(0); // fan only
+        expect(core.modeConflicts([unit('a', 1), unit('b', 8)]).size).to.equal(0); // auto follows
+        expect(core.modeConflicts([unit('a', 1), unit('b', 3, { power: false })]).size).to.equal(0);
+        expect(core.modeConflicts([unit('a', 1), unit('b', 3, { multiSplit: false })]).size).to.equal(0);
+        expect(core.modeConflicts([unit('a', 1), unit('b', 3, { building: 'C' })]).size).to.equal(0);
+        expect([...core.modeConflicts([unit('a', 1), unit('b', 3), unit('c', 3)])]).to.have.members(['a', 'b', 'c']);
     });
 
     it('uses only built-in icon markup', () => {

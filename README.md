@@ -108,6 +108,8 @@ MELCloud and Mitsubishi Electric are trademarks of their respective owners. Use 
 * (Sven-83) initial project setup
 * (Sven-83) real-time updates via WebSocket (`info.realtime`), polling continues as fallback
 * (Sven-83) climate dashboard served by the web adapter, room icons in the instance settings
+* (Sven-83) dashboard: off timer sends the minutes shown on the wheel, mode conflict hint for multi-split systems
+* (Sven-83) vane auto is repeated like swing when the unit did not apply it
 
 ## License
 MIT License

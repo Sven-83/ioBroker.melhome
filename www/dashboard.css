@@ -122,6 +122,7 @@ html,body{height:100%;overflow:hidden;}
   letter-spacing:.04em;
 }
 .err-badge.show{display:inline-block;}
+.conflict-badge{color:var(--amber);border-color:var(--amber);cursor:help;}
 
 /* power toggle - brass switch */
 .power-toggle{

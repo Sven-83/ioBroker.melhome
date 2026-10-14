@@ -37,6 +37,7 @@ const VANE_AXES = {
   vaneHorizontalDirection: { swing: 12, label: "horizontal" },
   vaneVerticalDirection: { swing: 7, label: "vertical" }
 };
+const VANE_AUTO = 0;
 function isFixedPosition(code) {
   return typeof code === "number" && code >= 1 && code <= 5;
 }
@@ -627,7 +628,7 @@ class AtaDevices {
     }
   }
   /**
-   * Remembers a swing request per vane, any other value of that vane cancels it.
+   * Remembers a swing or auto request per vane, any fixed position of that vane cancels it.
    *
    * @param unit - Unit state before the request
    * @param request - Control request of the user
@@ -638,11 +639,14 @@ class AtaDevices {
       if (request[field] === void 0) {
         continue;
       }
-      if (request[field] !== "Swing") {
+      const value = request[field];
+      if (value !== "Swing" && value !== "Auto") {
         this.swingWishes.delete(key);
         continue;
       }
       this.swingWishes.set(key, {
+        value,
+        code: value === "Swing" ? VANE_AXES[field].swing : VANE_AUTO,
         before: controlValue(unit, field),
         until: this.now() + SWING_RETRY_WINDOW_MS,
         retries: 0,
@@ -651,7 +655,7 @@ class AtaDevices {
     }
   }
   /**
-   * Repeats a swing the unit did not apply: the cloud showed "Swing", then the unit
+   * Repeats a swing or auto the unit did not apply: the cloud showed it, then the unit
    * reported its old fixed position again (docs/api.md section 9.1).
    *
    * @param unit - Unit state from /context
@@ -668,12 +672,13 @@ class AtaDevices {
       return;
     }
     const axis = VANE_AXES[field];
+    const what = wish.value.toLowerCase();
     if (this.now() >= wish.until) {
       this.swingWishes.delete(key);
       return;
     }
     const reported = controlValue(unit, field);
-    if (reported === axis.swing) {
+    if (reported === wish.code) {
       wish.stored = true;
       return;
     }
@@ -686,20 +691,20 @@ class AtaDevices {
     }
     if (wish.retries >= SWING_RETRY_MAX) {
       this.swingWishes.delete(key);
-      this.log.info(`${unit.name}: the unit did not apply the ${axis.label} swing - giving up`);
+      this.log.info(`${unit.name}: the unit did not apply the ${axis.label} vane ${what} - giving up`);
       return;
     }
     wish.retries++;
     wish.stored = false;
     this.log.info(
-      `${unit.name}: the unit still reports ${axis.label} vane position ${unit[field]} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
+      `${unit.name}: the unit still reports ${axis.label} vane position ${unit[field]} - sending ${what} again (${wish.retries}/${SWING_RETRY_MAX})`
     );
     this.guards.set(`${unit.id}.${field}`, {
-      value: axis.swing,
+      value: wish.code,
       until: this.now() + OPTIMISTIC_GUARD_MS,
       pending: true
     });
-    this.queue.enqueue(unit.id, { [field]: "Swing" });
+    this.queue.enqueue(unit.id, { [field]: wish.value });
   }
   /**
    * Writes the last known value back (with ack) after a rejected or failed command.

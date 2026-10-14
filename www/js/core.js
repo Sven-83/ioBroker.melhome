@@ -28,6 +28,9 @@
             ready: 'bereit',
             unreachable: 'nicht erreichbar',
             error: 'Störung',
+            modeConflict: 'Moduskonflikt',
+            modeConflictHint:
+                'Multi-Split: Heizen und Kühlen/Trocknen gehen nicht gleichzeitig – ein Gerät bleibt stehen',
             timer: 'Abschalt-Timer',
             timerHint: 'Rad drehen, dann Mitte antippen',
             timerCancel: 'Timer beenden',
@@ -60,6 +63,9 @@
             ready: 'standby',
             unreachable: 'unreachable',
             error: 'Fault',
+            modeConflict: 'Mode conflict',
+            modeConflictHint:
+                'Multi-split: heating and cooling/drying cannot run at the same time - one unit stands still',
             timer: 'Off timer',
             timerHint: 'Turn the wheel, then tap the centre',
             timerCancel: 'Cancel timer',
@@ -418,7 +424,6 @@
     }
 
     const TIMER_MAX_MIN = 360;
-    const TIMER_STEP_MIN = 5;
 
     /**
      * Wheel rotation applied to the selected minutes (one turn = 60 min, 0...360).
@@ -440,13 +445,13 @@
     }
 
     /**
-     * Minutes sent when the wheel is confirmed (5-minute grid).
+     * Minutes sent when the wheel is confirmed: the whole minutes the wheel shows.
      *
      * @param {number} minutes - Wheel selection
      * @returns {number}
      */
     function confirmedTimerMinutes(minutes) {
-        return Math.min(TIMER_MAX_MIN, Math.round(minutes / TIMER_STEP_MIN) * TIMER_STEP_MIN);
+        return Math.min(TIMER_MAX_MIN, Math.max(0, Math.round(minutes)));
     }
 
     /**
@@ -460,6 +465,27 @@
             return 'unreachable';
         }
         return values.power === true ? 'running' : 'ready';
+    }
+
+    /**
+     * Running multi-split units of one building whose modes need opposite operation of the shared
+     * outdoor unit (heat against cool/dry). The outdoor unit serves only one side, the other unit stands still.
+     *
+     * @param {Array<{id: string, multiSplit: unknown, building: unknown, power: unknown, mode: unknown}>} units - Unit values
+     * @returns {Set<string>} Ids of the units in conflict
+     */
+    function modeConflicts(units) {
+        const side = (/** @type {unknown} */ mode) => (mode === 1 ? 'heat' : mode === 3 || mode === 2 ? 'cool' : null);
+        const active = units.filter(unit => unit.multiSplit === true && unit.power === true && side(unit.mode));
+        const ids = new Set();
+        for (const a of active) {
+            for (const b of active) {
+                if (a.building === b.building && side(a.mode) !== side(b.mode)) {
+                    ids.add(a.id);
+                }
+            }
+        }
+        return ids;
     }
 
     /**
@@ -545,6 +571,7 @@
         rotateTimer,
         confirmedTimerMinutes,
         statusKey,
+        modeConflicts,
         createDebouncer,
         unitIdsOf,
         instanceFromSearch,

@@ -545,6 +545,14 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
     schwenkt → **Geräteberichte können veraltet sein.** Adapter wiederholt Swing 10:43:39 (2 s nach dem Bericht, PUT
     10:43:40) – unnötig, aber harmlos; Swing läuft weiter.
   - Folge: Die Wiederholung bleibt richtig, weil sie im schlimmsten Fall einen wirkungslosen PUT kostet (max. 3×).
+- **Lamelle Auto (Bedientest 2026-10-14, Wohnraum):**
+  - Dashboard: Seitenlamelle Rechts → Auto 21:35 (PUT 200, `/context` zeigt Auto) → Lamelle **bleibt rechts**, auch nach
+    Aus/Ein. Anders als beim Swing-Test kam nach dem Einschalten **kein** Gerätebericht.
+  - Gegenprobe offizielle App: Links → Auto 21:42 → Lamelle **bleibt links**. Gleiches Verhalten → kein Adapterfehler.
+  - Ob die Cloud Auto verwirft (wie Swing) oder „Auto“ bei der Seitenlamelle des MSZ-AY ohne Raumsensor einfach
+    „stehen bleiben“ bedeutet, lässt sich über die Cloud nicht unterscheiden.
+  - Folge: Der Adapter behandelt Auto wie Swing (Wunsch merken, nach Bericht der alten Position erneut senden, max. 3×).
+    Schadet im zweiten Fall nicht, hilft im ersten.
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),
