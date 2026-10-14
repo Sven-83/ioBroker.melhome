@@ -9,6 +9,8 @@
  *
  * Optional: PROBE_WS_SECONDS=120 npm run probe  -> listens to the WebSocket for 120 s
  * (change something in the official app meanwhile to capture push messages).
+ * Optional: PROBE_MEASURES=1 npm run probe  -> also tries undocumented telemetry measures per unit
+ * (about 19 extra GET requests per unit, results in unitN-measures.json).
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -104,6 +106,62 @@ export class Anonymiser {
         }
         return this.text(value);
     }
+}
+
+// ---------------------------------------------------------------- measure search
+
+/**
+ * Measure names tried on the telemetry endpoint. Documented: room_temperature, set_temperature, rssi.
+ * The rest are guesses in the same snake_case style - looking for the vane position the unit really reports.
+ */
+const CANDIDATE_MEASURES = [
+    'room_temperature',
+    'set_temperature',
+    'rssi',
+    'vane_horizontal_direction',
+    'vane_vertical_direction',
+    'horizontal_vane_direction',
+    'vertical_vane_direction',
+    'vane_horizontal',
+    'vane_vertical',
+    'wide_vane',
+    'vane',
+    'set_fan_speed',
+    'actual_fan_speed',
+    'fan_speed',
+    'operation_mode',
+    'power',
+    'outdoor_temperature',
+];
+
+function describeMeasure(answer: { status: number; data: unknown }): Record<string, unknown> {
+    const measureData = (answer.data as { measureData?: { type?: unknown; values?: unknown[] }[] } | null)?.measureData;
+    if (!Array.isArray(measureData)) {
+        return {
+            status: answer.status,
+            body: typeof answer.data === 'string' ? answer.data.slice(0, 200) : answer.data,
+        };
+    }
+    const values = measureData.flatMap(m => m.values ?? []);
+    return {
+        status: answer.status,
+        types: measureData.map(m => m.type),
+        values: values.length,
+        first: values[0],
+        last: values[values.length - 1],
+    };
+}
+
+function describeReport(answer: { status: number; data: unknown }): Record<string, unknown> {
+    const report = Array.isArray(answer.data) ? answer.data[0] : answer.data;
+    const datasets = (report as { datasets?: { id?: unknown; data?: unknown[] }[] } | null)?.datasets;
+    if (!Array.isArray(datasets)) {
+        return { status: answer.status, body: answer.data };
+    }
+    return {
+        status: answer.status,
+        datasets: datasets.map(d => ({ id: d.id, points: d.data?.length ?? 0, last: d.data?.[d.data.length - 1] })),
+    };
 }
 
 // ---------------------------------------------------------------- terminal input
@@ -276,6 +334,34 @@ async function main(): Promise<void> {
             `unit${n}`,
             `online=${unit.isConnected}, energy HTTP ${energy.status} (${energyValues} values), rssi HTTP ${rssi.status}, trend HTTP ${trend.status}`,
         );
+
+        // 3b. optional: search for device-reported values beyond the documented ones (still GET only)
+        if (process.env.PROBE_MEASURES === '1') {
+            const results: Record<string, unknown> = {};
+            const window = new URLSearchParams({
+                from: formatTelemetryTime(now - hourMs),
+                to: formatTelemetryTime(now),
+            });
+            for (const measure of CANDIDATE_MEASURES) {
+                const query = new URLSearchParams(window);
+                query.set('measure', measure);
+                const answer = await get(
+                    `${DEFAULT_ENDPOINTS.api}${PATH_TELEMETRY_ACTUAL}${encodeURIComponent(id)}?${query.toString()}`,
+                );
+                results[measure] = describeMeasure(answer);
+            }
+            const operationMode = await get(
+                `${DEFAULT_ENDPOINTS.api}/telemetry/telemetry/operationmode/${encodeURIComponent(id)}?${window.toString()}`,
+            );
+            results['endpoint:operationmode'] = { status: operationMode.status, data: operationMode.data };
+            const comfort = await get(`${DEFAULT_ENDPOINTS.api}/report/v1/comfort-graph?${trendQuery.toString()}`);
+            results['endpoint:comfort-graph'] = describeReport(comfort);
+            save(`unit${n}-measures.json`, results);
+            const found = Object.entries(results)
+                .filter(([, r]) => (r as { values?: number }).values)
+                .map(([m, r]) => `${m} (${(r as { values: number }).values})`);
+            step(`unit${n} measures`, found.length > 0 ? `with values: ${found.join(', ')}` : 'no values');
+        }
     }
 
     // 4. WebSocket (optional, listen only)
