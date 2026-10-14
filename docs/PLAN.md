@@ -69,7 +69,8 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ Entscheidung statt „Geräteberichte als Ist-Wert übernehmen“: Jede Unit-Nachricht (`unitStateChanged`, `unitCommunicationLost/Restored`) löst nur einen `/context`-Abruf nach 2 s aus. `/context` enthält die Geräteberichte bereits (Swing-Live-Test). REST bleibt einzige Wahrheitsquelle; nach jedem (Re-)Connect ein Abruf.
 - ☑ README „Bekannte Einschränkungen“ (DE/EN): Seitenlamelle Swing, befohlene vs. übernommene Werte
 - ☑ 2026-10-14 live: Verbindung + `info.realtime`, kein Hash im Log; Einschalten in der App → WS-Nachricht 10:16:44 → Abruf 10:16:47 → `control.power` true (3 s statt bis 60 s)
-- ☐ Live: Swing-Umgehung mit WS (Wiederholung wenige Sekunden nach Aus/Ein), Reconnect nach 2-h-Trennung im Log
+- ☑ 2026-10-14 live: Swing-Umgehung mit WS – Wiederholung 2 s nach dem Gerätebericht statt bis 60 s. Beobachtet: ein veralteter Bericht („Left“ bei laufendem Swing) löst eine harmlose Wiederholung aus (api.md §9.1).
+- ☐ Live: Reconnect nach 2-h-Trennung im Log (ohne Info/Warnung)
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`

@@ -538,6 +538,13 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
     Einschalten), keine Wiederholung nötig.
   - Gerät an, letzter Bericht Swing: Links (wirkt) → Swing 09:33:12 (PUT 200, Lamelle **bleibt links** – Problem
     nachgestellt) → Aus/Ein → Bericht Links → Adapter 09:34:14 „sending swing again (1/3)“ → Lamelle schwenkt ✔.
+- **Wiederholung mit WebSocket 2026-10-14 (Aus/Ein über die App):**
+  - Links 10:35:11 (WS-Echo 70 ms nach dem PUT) → Swing 10:35:47 (bleibt links) → Aus 10:41:49 (Bericht ohne Lamelle,
+    `/context` weiter Swing) → Ein 10:42:05: Gerät **schwenkt sofort**, `/context` zeigt Swing.
+  - 10:43:37 Gerätebericht (zusammen mit neuer Raumtemperatur) meldet trotzdem **„Left“**, obwohl die Lamelle sichtbar
+    schwenkt → **Geräteberichte können veraltet sein.** Adapter wiederholt Swing 10:43:39 (2 s nach dem Bericht, PUT
+    10:43:40) – unnötig, aber harmlos; Swing läuft weiter.
+  - Folge: Die Wiederholung bleibt richtig, weil sie im schlimmsten Fall einen wirkungslosen PUT kostet (max. 3×).
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),
