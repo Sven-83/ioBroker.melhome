@@ -31,6 +31,7 @@
             timer: 'Abschalt-Timer',
             timerHint: 'Rad drehen, dann Mitte antippen',
             timerCancel: 'Timer beenden',
+            offIn: 'aus in',
             off: 'Aus',
             min: 'Min',
             hours: 'Std',
@@ -62,6 +63,7 @@
             timer: 'Off timer',
             timerHint: 'Turn the wheel, then tap the centre',
             timerCancel: 'Cancel timer',
+            offIn: 'off in',
             off: 'Off',
             min: 'min',
             hours: 'h',
@@ -184,6 +186,13 @@
     <path d="M4 15 L6.6 13.4 M4 15 L6.2 17.4"/>
     <path d="M20 15 L17.4 13.4 M20 15 L17.8 17.4"/>
   </svg>`,
+        swingVertical: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(-90 12 12)">
+    <path d="M4 15 Q12 4 20 15"/>
+    <path d="M4 15 L6.6 13.4 M4 15 L6.2 17.4"/>
+    <path d="M20 15 L17.4 13.4 M20 15 L17.8 17.4"/>
+    </g>
+  </svg>`,
     };
 
     /**
@@ -212,17 +221,22 @@
     }
 
     /**
-     * 90° fan with five slices, pivot top left: position 1 next to the top edge,
+     * Fan with five slices, the active one highlighted.
+     * Vertical vane (side view): 90° fan, pivot top left, position 1 next to the top edge,
      * position 5 next to the left edge - like the real unit.
+     * Horizontal vane (top view): 180° fan, pivot bottom centre, position 1 left, 5 right.
      *
+     * @param {'h'|'v'} axis - Vane
      * @param {number} idx - Active position 1-5
      * @returns {string}
      */
-    function positionIconSvg(idx) {
-        const cx = 3;
-        const cy = 3;
-        const r = 17;
-        const slices = [0, 18, 36, 54, 72, 90].map(d => pieSlicePoint(d, cx, cy, r));
+    function positionIconSvg(axis, idx) {
+        const horizontal = axis === 'h';
+        const cx = horizontal ? 12 : 3;
+        const cy = horizontal ? 19 : 3;
+        const r = horizontal ? 15 : 17;
+        const angles = horizontal ? [180, 216, 252, 288, 324, 360] : [0, 18, 36, 54, 72, 90];
+        const slices = angles.map(d => pieSlicePoint(d, cx, cy, r));
         let out = '';
         for (let i = 0; i < 5; i++) {
             const color = i + 1 === idx ? 'currentColor' : '#4a5c45';
@@ -245,9 +259,9 @@
             return VANE_SPECIAL.auto;
         }
         if (code === (axis === 'h' ? VANE_H_SWING : VANE_V_SWING)) {
-            return VANE_SPECIAL.swing;
+            return axis === 'h' ? VANE_SPECIAL.swing : VANE_SPECIAL.swingVertical;
         }
-        return positionIconSvg(code);
+        return positionIconSvg(axis, code);
     }
 
     /**

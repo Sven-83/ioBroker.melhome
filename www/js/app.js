@@ -438,7 +438,6 @@
         q('.power-toggle').classList.toggle('on', power);
         q('.power-toggle').setAttribute('aria-checked', String(power));
         q('.dot').classList.toggle('off', online === false);
-        q('.status-text').textContent = C.t(lang, C.statusKey({ online, power }));
         q('.err-badge').classList.toggle('show', value(unitId, 'info.hasError') === true);
         element.classList.toggle('offline', online === false);
 
@@ -474,9 +473,18 @@
         const running = remaining > 0;
         badge.style.display = running ? 'inline-block' : 'none';
         ctx.q('.timer-btn').style.display = running ? 'none' : 'flex';
+        const countdown = C.formatCountdown(remaining);
         if (running) {
-            badge.textContent = C.formatCountdown(remaining);
+            badge.textContent = countdown;
         }
+        const status = C.t(
+            lang,
+            C.statusKey({
+                online: value(ctx.unitId, 'info.deviceOnline'),
+                power: value(ctx.unitId, 'control.power') === true,
+            }),
+        );
+        ctx.q('.status-text').textContent = running ? `${status} · ${C.t(lang, 'offIn')} ${countdown}` : status;
     }
 
     // ------------------------------------------------------------ start

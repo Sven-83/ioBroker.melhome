@@ -38,18 +38,23 @@ export const OPTIMISTIC_GUARD_MS = 120_000;
 /** How long the adapter keeps trying to get a requested horizontal swing applied (docs/api.md section 9.1) */
 export const SWING_RETRY_WINDOW_MS = 30 * 60_000;
 
-/** Maximum automatic repetitions of one horizontal swing request */
+/** Maximum automatic repetitions of one swing request */
 export const SWING_RETRY_MAX = 3;
 
-/** ioBroker code of the horizontal swing */
-const HORIZONTAL_SWING = 12;
+type VaneField = 'vaneHorizontalDirection' | 'vaneVerticalDirection';
+
+/** ioBroker swing code and log label per vane */
+const VANE_AXES: Readonly<Record<VaneField, { swing: number; label: string }>> = {
+    vaneHorizontalDirection: { swing: 12, label: 'horizontal' },
+    vaneVerticalDirection: { swing: 7, label: 'vertical' },
+};
 
 /**
- * A requested horizontal swing that the unit may not have applied yet.
+ * A requested swing that the unit may not have applied yet (both vanes behave the same).
  * The cloud drops "Swing" until the unit reports again; the report then shows the old position.
  */
 interface SwingWish {
-    /** Horizontal vane code reported before the request */
+    /** Vane code reported before the request */
     before: ioBroker.StateValue;
     /** End of the retry window */
     until: number;
@@ -60,11 +65,11 @@ interface SwingWish {
 }
 
 /**
- * True for the fixed horizontal positions 1-5.
+ * True for the fixed vane positions 1-5 (same codes on both vanes).
  *
- * @param code - Horizontal vane code
+ * @param code - Vane code
  */
-function isFixedHorizontalPosition(code: ioBroker.StateValue): boolean {
+function isFixedPosition(code: ioBroker.StateValue): boolean {
     return typeof code === 'number' && code >= 1 && code <= 5;
 }
 
@@ -409,7 +414,7 @@ export class AtaDevices implements TelemetrySink {
     private readonly queue: CommandQueue;
     private readonly timers: OffTimers;
     private readonly missingLogged = new Set<string>();
-    /** unit id -> requested horizontal swing */
+    /** "<unit id>.<vane field>" -> requested swing */
     private readonly swingWishes = new Map<string, SwingWish>();
 
     /** @param options - Dependencies */
@@ -535,9 +540,7 @@ export class AtaDevices implements TelemetrySink {
             await this.restore(unit, field as ControlField);
             return;
         }
-        if (request.vaneHorizontalDirection !== undefined) {
-            this.trackSwingWish(unit, request);
-        }
+        this.trackSwingWish(unit, request);
         // keep the user's value visible while the command waits in the queue
         const until = this.now() + OPTIMISTIC_GUARD_MS;
         for (const [guardField, value] of Object.entries(fieldsOfRequest(request))) {
@@ -766,8 +769,10 @@ export class AtaDevices implements TelemetrySink {
         if (!unit) {
             return;
         }
-        if (request.vaneHorizontalDirection !== undefined) {
-            this.swingWishes.delete(unitId);
+        for (const field of Object.keys(VANE_AXES) as VaneField[]) {
+            if (request[field] !== undefined) {
+                this.swingWishes.delete(`${unitId}.${field}`);
+            }
         }
         for (const field of Object.keys(fieldsOfRequest(request)) as ControlField[]) {
             this.guards.delete(`${unitId}.${field}`);
@@ -776,69 +781,83 @@ export class AtaDevices implements TelemetrySink {
     }
 
     /**
-     * Remembers a horizontal swing request, any other horizontal value cancels it.
+     * Remembers a swing request per vane, any other value of that vane cancels it.
      *
      * @param unit - Unit state before the request
      * @param request - Control request of the user
      */
     private trackSwingWish(unit: AtaUnit, request: AtaControlRequest): void {
-        if (request.vaneHorizontalDirection !== 'Swing') {
-            this.swingWishes.delete(unit.id);
-            return;
+        for (const field of Object.keys(VANE_AXES) as VaneField[]) {
+            const key = `${unit.id}.${field}`;
+            if (request[field] === undefined) {
+                continue;
+            }
+            if (request[field] !== 'Swing') {
+                this.swingWishes.delete(key);
+                continue;
+            }
+            this.swingWishes.set(key, {
+                before: controlValue(unit, field),
+                until: this.now() + SWING_RETRY_WINDOW_MS,
+                retries: 0,
+                stored: false,
+            });
         }
-        this.swingWishes.set(unit.id, {
-            before: controlValue(unit, 'vaneHorizontalDirection'),
-            until: this.now() + SWING_RETRY_WINDOW_MS,
-            retries: 0,
-            stored: false,
-        });
     }
 
     /**
-     * Repeats a horizontal swing the unit did not apply: the cloud showed "Swing", then the unit
+     * Repeats a swing the unit did not apply: the cloud showed "Swing", then the unit
      * reported its old fixed position again (docs/api.md section 9.1).
      *
      * @param unit - Unit state from /context
      */
     private checkSwingWish(unit: AtaUnit): void {
-        const wish = this.swingWishes.get(unit.id);
+        for (const field of Object.keys(VANE_AXES) as VaneField[]) {
+            this.checkSwingWishOf(unit, field);
+        }
+    }
+
+    private checkSwingWishOf(unit: AtaUnit, field: VaneField): void {
+        const key = `${unit.id}.${field}`;
+        const wish = this.swingWishes.get(key);
         if (!wish) {
             return;
         }
+        const axis = VANE_AXES[field];
         if (this.now() >= wish.until) {
-            this.swingWishes.delete(unit.id);
+            this.swingWishes.delete(key);
             return;
         }
-        const reported = controlValue(unit, 'vaneHorizontalDirection');
-        if (reported === HORIZONTAL_SWING) {
+        const reported = controlValue(unit, field);
+        if (reported === axis.swing) {
             wish.stored = true;
             return;
         }
-        if (!wish.stored || !isFixedHorizontalPosition(reported)) {
+        if (!wish.stored || !isFixedPosition(reported)) {
             return;
         }
-        if (isFixedHorizontalPosition(wish.before) && reported !== wish.before) {
+        if (isFixedPosition(wish.before) && reported !== wish.before) {
             // another position was chosen in the meantime (e.g. in the official app)
-            this.swingWishes.delete(unit.id);
+            this.swingWishes.delete(key);
             return;
         }
         if (wish.retries >= SWING_RETRY_MAX) {
-            this.swingWishes.delete(unit.id);
-            this.log.info(`${unit.name}: the unit did not apply the horizontal swing - giving up`);
+            this.swingWishes.delete(key);
+            this.log.info(`${unit.name}: the unit did not apply the ${axis.label} swing - giving up`);
             return;
         }
         wish.retries++;
         wish.stored = false;
         this.log.info(
-            `${unit.name}: the unit still reports horizontal vane position ${unit.vaneHorizontalDirection} - ` +
+            `${unit.name}: the unit still reports ${axis.label} vane position ${unit[field]} - ` +
                 `sending swing again (${wish.retries}/${SWING_RETRY_MAX})`,
         );
-        this.guards.set(`${unit.id}.vaneHorizontalDirection`, {
-            value: HORIZONTAL_SWING,
+        this.guards.set(`${unit.id}.${field}`, {
+            value: axis.swing,
             until: this.now() + OPTIMISTIC_GUARD_MS,
             pending: true,
         });
-        this.queue.enqueue(unit.id, { vaneHorizontalDirection: 'Swing' });
+        this.queue.enqueue(unit.id, { [field]: 'Swing' });
     }
 
     /**

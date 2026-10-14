@@ -33,8 +33,11 @@ var import_off_timer = require("./off-timer");
 const OPTIMISTIC_GUARD_MS = 12e4;
 const SWING_RETRY_WINDOW_MS = 30 * 6e4;
 const SWING_RETRY_MAX = 3;
-const HORIZONTAL_SWING = 12;
-function isFixedHorizontalPosition(code) {
+const VANE_AXES = {
+  vaneHorizontalDirection: { swing: 12, label: "horizontal" },
+  vaneVerticalDirection: { swing: 7, label: "vertical" }
+};
+function isFixedPosition(code) {
   return typeof code === "number" && code >= 1 && code <= 5;
 }
 const ROOT = "devices";
@@ -124,6 +127,12 @@ function buildUnitObjects(base, unit, namespace) {
     role: "indicator.maintenance.alarm"
   });
   state("info.errorCode", { name: name("Error code", "Fehlercode"), type: "string", role: "text" });
+  state("info.icon", {
+    name: name("Dashboard room icon", "Dashboard-Raumsymbol"),
+    type: "string",
+    role: "text",
+    states: Object.fromEntries(import_mapping.ROOM_ICONS.map((icon) => [icon, icon]))
+  });
   state("info.roomTemp", {
     name: name("Room temperature", "Raumtemperatur"),
     type: "number",
@@ -283,7 +292,7 @@ class AtaDevices {
   queue;
   timers;
   missingLogged = /* @__PURE__ */ new Set();
-  /** unit id -> requested horizontal swing */
+  /** "<unit id>.<vane field>" -> requested swing */
   swingWishes = /* @__PURE__ */ new Map();
   /** @param options - Dependencies */
   constructor(options) {
@@ -315,6 +324,10 @@ class AtaDevices {
       onExpire: (unitId) => this.switchOffByTimer(unitId),
       onUpdate: (unitId, remaining, end) => this.writeTimer(unitId, remaining, end)
     });
+  }
+  /** Known units for the instance settings (id and room name) */
+  listUnits() {
+    return [...this.units.values()].map((unit) => ({ id: unit.id, name: unit.name }));
   }
   /** Restores persisted off timers (call once at startup) */
   async restoreTimers() {
@@ -402,9 +415,7 @@ class AtaDevices {
       await this.restore(unit, field);
       return;
     }
-    if (request.vaneHorizontalDirection !== void 0) {
-      this.trackSwingWish(unit, request);
-    }
+    this.trackSwingWish(unit, request);
     const until = this.now() + OPTIMISTIC_GUARD_MS;
     for (const [guardField, value] of Object.entries(fieldsOfRequest(request))) {
       this.guards.set(`${unitId}.${guardField}`, { value, until, pending: true });
@@ -474,7 +485,7 @@ class AtaDevices {
     this.objectSignatures.set(unit.id, signature);
   }
   async writeUnit(unit) {
-    var _a;
+    var _a, _b;
     const base = this.base(unit.id);
     const caps = unit.capabilities;
     const now = this.now();
@@ -484,6 +495,7 @@ class AtaDevices {
     await this.write(`${base}.info.deviceOnline`, unit.isConnected);
     await this.write(`${base}.info.hasError`, unit.isInError);
     await this.write(`${base}.info.errorCode`, unit.errorCode);
+    await this.write(`${base}.info.icon`, (0, import_mapping.roomIcon)((_a = this.options.roomIcons) == null ? void 0 : _a[unit.id]));
     await this.write(`${base}.info.roomTemp`, unit.roomTemperature);
     await this.write(`${base}.info.actualFanSpeed`, (0, import_mapping.toCode)(import_mapping.ACTUAL_FAN_SPEED_CODES, unit.actualFanSpeed));
     await this.write(`${base}.info.lastUpdate`, now);
@@ -499,7 +511,7 @@ class AtaDevices {
       fields.push("standby");
     }
     for (const field of fields) {
-      if ((_a = this.guards.get(`${unit.id}.${field}`)) == null ? void 0 : _a.pending) {
+      if ((_b = this.guards.get(`${unit.id}.${field}`)) == null ? void 0 : _b.pending) {
         continue;
       }
       await this.write(`${base}.control.${field}`, this.guarded(unit.id, field, controlValue(unit, field), now));
@@ -604,8 +616,10 @@ class AtaDevices {
     if (!unit) {
       return;
     }
-    if (request.vaneHorizontalDirection !== void 0) {
-      this.swingWishes.delete(unitId);
+    for (const field of Object.keys(VANE_AXES)) {
+      if (request[field] !== void 0) {
+        this.swingWishes.delete(`${unitId}.${field}`);
+      }
     }
     for (const field of Object.keys(fieldsOfRequest(request))) {
       this.guards.delete(`${unitId}.${field}`);
@@ -613,66 +627,79 @@ class AtaDevices {
     }
   }
   /**
-   * Remembers a horizontal swing request, any other horizontal value cancels it.
+   * Remembers a swing request per vane, any other value of that vane cancels it.
    *
    * @param unit - Unit state before the request
    * @param request - Control request of the user
    */
   trackSwingWish(unit, request) {
-    if (request.vaneHorizontalDirection !== "Swing") {
-      this.swingWishes.delete(unit.id);
-      return;
+    for (const field of Object.keys(VANE_AXES)) {
+      const key = `${unit.id}.${field}`;
+      if (request[field] === void 0) {
+        continue;
+      }
+      if (request[field] !== "Swing") {
+        this.swingWishes.delete(key);
+        continue;
+      }
+      this.swingWishes.set(key, {
+        before: controlValue(unit, field),
+        until: this.now() + SWING_RETRY_WINDOW_MS,
+        retries: 0,
+        stored: false
+      });
     }
-    this.swingWishes.set(unit.id, {
-      before: controlValue(unit, "vaneHorizontalDirection"),
-      until: this.now() + SWING_RETRY_WINDOW_MS,
-      retries: 0,
-      stored: false
-    });
   }
   /**
-   * Repeats a horizontal swing the unit did not apply: the cloud showed "Swing", then the unit
+   * Repeats a swing the unit did not apply: the cloud showed "Swing", then the unit
    * reported its old fixed position again (docs/api.md section 9.1).
    *
    * @param unit - Unit state from /context
    */
   checkSwingWish(unit) {
-    const wish = this.swingWishes.get(unit.id);
+    for (const field of Object.keys(VANE_AXES)) {
+      this.checkSwingWishOf(unit, field);
+    }
+  }
+  checkSwingWishOf(unit, field) {
+    const key = `${unit.id}.${field}`;
+    const wish = this.swingWishes.get(key);
     if (!wish) {
       return;
     }
+    const axis = VANE_AXES[field];
     if (this.now() >= wish.until) {
-      this.swingWishes.delete(unit.id);
+      this.swingWishes.delete(key);
       return;
     }
-    const reported = controlValue(unit, "vaneHorizontalDirection");
-    if (reported === HORIZONTAL_SWING) {
+    const reported = controlValue(unit, field);
+    if (reported === axis.swing) {
       wish.stored = true;
       return;
     }
-    if (!wish.stored || !isFixedHorizontalPosition(reported)) {
+    if (!wish.stored || !isFixedPosition(reported)) {
       return;
     }
-    if (isFixedHorizontalPosition(wish.before) && reported !== wish.before) {
-      this.swingWishes.delete(unit.id);
+    if (isFixedPosition(wish.before) && reported !== wish.before) {
+      this.swingWishes.delete(key);
       return;
     }
     if (wish.retries >= SWING_RETRY_MAX) {
-      this.swingWishes.delete(unit.id);
-      this.log.info(`${unit.name}: the unit did not apply the horizontal swing - giving up`);
+      this.swingWishes.delete(key);
+      this.log.info(`${unit.name}: the unit did not apply the ${axis.label} swing - giving up`);
       return;
     }
     wish.retries++;
     wish.stored = false;
     this.log.info(
-      `${unit.name}: the unit still reports horizontal vane position ${unit.vaneHorizontalDirection} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
+      `${unit.name}: the unit still reports ${axis.label} vane position ${unit[field]} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
     );
-    this.guards.set(`${unit.id}.vaneHorizontalDirection`, {
-      value: HORIZONTAL_SWING,
+    this.guards.set(`${unit.id}.${field}`, {
+      value: axis.swing,
       until: this.now() + OPTIMISTIC_GUARD_MS,
       pending: true
     });
-    this.queue.enqueue(unit.id, { vaneHorizontalDirection: "Swing" });
+    this.queue.enqueue(unit.id, { [field]: "Swing" });
   }
   /**
    * Writes the last known value back (with ack) after a rejected or failed command.

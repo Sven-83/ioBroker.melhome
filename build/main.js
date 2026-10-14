@@ -47,6 +47,7 @@ class Melcloudhome extends utils.Adapter {
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
+    this.on("message", this.onMessage.bind(this));
   }
   /**
    * Is called when databases are connected and adapter received configuration.
@@ -93,7 +94,10 @@ class Melcloudhome extends utils.Adapter {
       requestRefresh: () => {
         var _a2;
         return (_a2 = this.connection) == null ? void 0 : _a2.requestRefresh();
-      }
+      },
+      roomIcons: Object.fromEntries(
+        (Array.isArray(this.config.roomIcons) ? this.config.roomIcons : []).filter((entry) => entry && typeof entry.unit === "string").map((entry) => [entry.unit, entry.icon])
+      )
     });
     await this.devices.restoreTimers();
     this.telemetry = new import_telemetry.TelemetryPoller({ source: client, sink: this.devices, scheduler, log: this.log });
@@ -192,6 +196,23 @@ class Melcloudhome extends utils.Adapter {
     } catch (error) {
       this.log.error(`Error during unloading: ${error.message}`);
       callback();
+    }
+  }
+  /**
+   * Answers requests of the instance settings.
+   *
+   * @param obj - Message from admin
+   */
+  onMessage(obj) {
+    var _a, _b;
+    if ((obj == null ? void 0 : obj.command) === "getUnits" && obj.callback) {
+      const units = (_b = (_a = this.devices) == null ? void 0 : _a.listUnits()) != null ? _b : [];
+      this.sendTo(
+        obj.from,
+        obj.command,
+        units.map((unit) => ({ value: unit.id, label: unit.name })),
+        obj.callback
+      );
     }
   }
   /**

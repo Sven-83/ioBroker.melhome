@@ -318,6 +318,24 @@ describe('devices/ata', () => {
             return env;
         }
 
+        it('repeats a vertical swing the same way, independent of the horizontal vane', async () => {
+            const env = setup();
+            await env.devices.update(withLiving({ vaneVerticalDirection: 'Five' }));
+            await env.devices.handleCommand(...env.port.userWrite(`${L}.control.vaneVerticalDirection`, 7));
+            await flush(env);
+            await env.devices.update(withLiving({ vaneVerticalDirection: 'Swing' }));
+            const VSWING = { unitId: LIVING, request: { vaneVerticalDirection: 'Swing' } };
+            expect(env.sent).to.deep.equal([VSWING]);
+
+            await env.devices.update(withLiving({ vaneVerticalDirection: 'Five' }));
+            await flush(env);
+            expect(env.sent).to.deep.equal([VSWING, VSWING]);
+            expect(env.port.val(`${L}.control.vaneVerticalDirection`)).to.equal(7);
+            expect(
+                env.log.at('info').some(m => m.includes('vertical vane position Five - sending swing again (1/3)')),
+            ).to.equal(true);
+        });
+
         it('sends swing again when the unit reports its old position', async () => {
             const env = await swingRequested();
             expect(env.sent).to.deep.equal([SWING]);

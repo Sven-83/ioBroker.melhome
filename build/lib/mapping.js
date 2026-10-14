@@ -21,6 +21,7 @@ __export(mapping_exports, {
   ACTUAL_FAN_SPEED_CODES: () => ACTUAL_FAN_SPEED_CODES,
   FAN_SPEED_CODES: () => FAN_SPEED_CODES,
   MODE_CODES: () => MODE_CODES,
+  ROOM_ICONS: () => ROOM_ICONS,
   VANE_HORIZONTAL_CODES: () => VANE_HORIZONTAL_CODES,
   VANE_VERTICAL_CODES: () => VANE_VERTICAL_CODES,
   actualFanSpeedStates: () => actualFanSpeedStates,
@@ -30,6 +31,7 @@ __export(mapping_exports, {
   isAllowedCode: () => isAllowedCode,
   modeStates: () => modeStates,
   overallTemperatureLimits: () => overallTemperatureLimits,
+  roomIcon: () => roomIcon,
   temperatureLimits: () => temperatureLimits,
   toCode: () => toCode,
   vaneStates: () => vaneStates
@@ -166,11 +168,16 @@ function clampTemperature(value, limits) {
   const rounded = Math.round(value / limits.step) * limits.step;
   return Math.min(limits.max, Math.max(limits.min, Number(rounded.toFixed(1))));
 }
+const ROOM_ICONS = ["auto", "armchair", "bed", "desk", "dining", "child", "unit"];
+function roomIcon(value) {
+  return typeof value === "string" && ROOM_ICONS.includes(value) ? value : "auto";
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   ACTUAL_FAN_SPEED_CODES,
   FAN_SPEED_CODES,
   MODE_CODES,
+  ROOM_ICONS,
   VANE_HORIZONTAL_CODES,
   VANE_VERTICAL_CODES,
   actualFanSpeedStates,
@@ -180,6 +187,7 @@ function clampTemperature(value, limits) {
   isAllowedCode,
   modeStates,
   overallTemperatureLimits,
+  roomIcon,
   temperatureLimits,
   toCode,
   vaneStates

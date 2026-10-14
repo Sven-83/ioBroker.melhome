@@ -103,7 +103,8 @@ describe('dashboard core', () => {
         expect(core.roomIconSvg('<img src=x onerror=alert(1)>', 1)).to.equal(core.ROOM_ICONS.bed);
         expect(core.roomIconSvg('constructor', 0)).to.equal(core.ROOM_ICONS.armchair);
         expect(core.vaneIconSvg('h', 12)).to.include('Q12 4 20 15');
-        expect(core.vaneIconSvg('v', 7)).to.include('Q12 4 20 15');
+        expect(core.vaneIconSvg('v', 7)).to.include('rotate(-90 12 12)');
+        expect(core.vaneIconSvg('h', 1)).to.not.equal(core.vaneIconSvg('v', 1));
         expect(core.vaneIconSvg('h', 3).match(/currentColor/g)).to.have.length(1);
         expect(core.vaneLabel('de', 'h', 3)).to.equal('Position 3');
     });
