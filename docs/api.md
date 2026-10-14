@@ -290,7 +290,7 @@ Intervall: 30 min. Gibt es im Fenster keine echte Messung (Gerät lange aus), bl
 | `messageType` | Inhalt | Verwendung |
 |---|---|---|
 | `unitStateChanged` | nur **geänderte** Settings | Trigger für `/context`-Refresh (debounced ~2 s) |
-| `unitCommunicationLost` | `{ id, timestamp }` | sofort `info.deviceOnline=false` (optional), dann Refresh |
+| `unitCommunicationLost` | `{ id, timestamp }` | Refresh (Adapter setzt `deviceOnline` bewusst nicht direkt, kein Flackern) |
 | `unitCommunicationRestored` | `{ id, timestamp }` | Refresh |
 
 - Feldname mal `Data`, mal `data`.

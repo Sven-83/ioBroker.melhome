@@ -308,6 +308,10 @@ class AtaDevices {
       scheduler: options.scheduler,
       log: options.log,
       now: this.now,
+      nameOf: (unitId) => {
+        var _a2, _b;
+        return (_b = (_a2 = this.units.get(unitId)) == null ? void 0 : _a2.name) != null ? _b : unitId;
+      },
       onExpire: (unitId) => this.switchOffByTimer(unitId),
       onUpdate: (unitId, remaining, end) => this.writeTimer(unitId, remaining, end)
     });
@@ -661,7 +665,7 @@ class AtaDevices {
     wish.retries++;
     wish.stored = false;
     this.log.info(
-      `${unit.name}: the unit still reports horizontal vane position ${String(reported)} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
+      `${unit.name}: the unit still reports horizontal vane position ${unit.vaneHorizontalDirection} - sending swing again (${wish.retries}/${SWING_RETRY_MAX})`
     );
     this.guards.set(`${unit.id}.vaneHorizontalDirection`, {
       value: HORIZONTAL_SWING,

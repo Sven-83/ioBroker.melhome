@@ -10,6 +10,7 @@ import { ConnectionManager, type Scheduler } from './lib/api/connection';
 import { describeError } from './lib/api/errors';
 import { HttpTransport } from './lib/api/http';
 import type { UserContext } from './lib/api/types';
+import { RealtimeConnection } from './lib/api/websocket';
 import { AtaDevices, type AdapterPort } from './lib/devices/ata';
 import { TelemetryPoller } from './lib/devices/telemetry';
 
@@ -23,6 +24,7 @@ class Melcloudhome extends utils.Adapter {
     private connection: ConnectionManager | undefined;
     private devices: AtaDevices | undefined;
     private telemetry: TelemetryPoller | undefined;
+    private realtime: RealtimeConnection | undefined;
     private knownUnitCount: number | undefined;
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
@@ -40,6 +42,7 @@ class Melcloudhome extends utils.Adapter {
      */
     private async onReady(): Promise<void> {
         await this.setState('info.connection', false, true);
+        await this.setState('info.realtime', false, true);
 
         const email = (this.config.email ?? '').trim();
         const password = this.config.password ?? '';
@@ -92,9 +95,31 @@ class Melcloudhome extends utils.Adapter {
             scheduler,
             onConnectionChange: async connected => {
                 await this.setState('info.connection', connected, true);
+                // the WebSocket follows REST: no own login attempts while the cloud is unreachable
+                if (connected) {
+                    this.realtime?.start();
+                } else {
+                    this.realtime?.stop();
+                }
             },
             onContext: context => this.onContext(context),
         });
+
+        if (this.config.realtime) {
+            this.realtime = new RealtimeConnection({
+                getHash: () => client.getWebSocketHash(),
+                scheduler,
+                log: this.log,
+                onUnitEvent: () => this.connection?.requestRefresh(),
+                onConnectionChange: async connected => {
+                    await this.setState('info.realtime', connected, true);
+                    if (connected) {
+                        // events may have been missed while the socket was closed
+                        this.connection?.requestRefresh();
+                    }
+                },
+            });
+        }
 
         this.subscribeStates('devices.*.control.*');
         this.log.info(
@@ -144,11 +169,13 @@ class Melcloudhome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
+            this.realtime?.stop();
             this.connection?.stop();
             this.telemetry?.stop();
             this.devices?.stop();
             this.http?.abort();
             void this.setState('info.connection', false, true);
+            void this.setState('info.realtime', false, true);
             callback();
         } catch (error) {
             this.log.error(`Error during unloading: ${(error as Error).message}`);

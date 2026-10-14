@@ -64,10 +64,12 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - Hinweis: Windows 11 ohne `wmic` → `dev-server watch` stürzt ab (nodemon), `dev-server run` verwenden
 
 ## Phase 4 – Echtzeit
-- ☐ WebSocket-Push, Heartbeat, Reconnect mit Backoff
-- ☐ Automatischer Fallback auf Polling, Status-State
-- ☐ Geräteberichte (WS-Frames mit Wort-Strings, z. B. `VaneHorizontalDirection = "Left"`) als Ist-Wert übernehmen
-- ☐ README „Bekannte Einschränkungen“: Seitenlamelle Swing nach fester Position wird erst nach dem nächsten Gerätebericht übernommen (auch in der offiziellen App); der Adapter wiederholt automatisch
+- ☑ WebSocket-Push (`websocket.ts`, Paket `ws`): Hash je Verbindung, Ping 30 s / Pong-Timeout 10 s, Reconnect 5 → 300 s ±20 %, nach stabiler Sitzung (≥ 60 s, z. B. 2-h-Limit) sofort neu und Backoff zurück. Hash nie im Log. 12 Unit-Tests.
+- ☑ Fallback: Polling läuft immer weiter. Der WebSocket folgt REST (Start bei `info.connection` true, Stopp bei false → keine eigenen Login-Versuche). Status-State `info.realtime` (`indicator.connected`).
+- ☑ Entscheidung statt „Geräteberichte als Ist-Wert übernehmen“: Jede Unit-Nachricht (`unitStateChanged`, `unitCommunicationLost/Restored`) löst nur einen `/context`-Abruf nach 2 s aus. `/context` enthält die Geräteberichte bereits (Swing-Live-Test). REST bleibt einzige Wahrheitsquelle; nach jedem (Re-)Connect ein Abruf.
+- ☑ README „Bekannte Einschränkungen“ (DE/EN): Seitenlamelle Swing, befohlene vs. übernommene Werte
+- ☑ 2026-10-14 live: Verbindung + `info.realtime`, kein Hash im Log; Einschalten in der App → WS-Nachricht 10:16:44 → Abruf 10:16:47 → `control.power` true (3 s statt bis 60 s)
+- ☐ Live: Swing-Umgehung mit WS (Wiederholung wenige Sekunden nach Aus/Ein), Reconnect nach 2-h-Trennung im Log
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`

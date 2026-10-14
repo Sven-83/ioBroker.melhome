@@ -116,6 +116,7 @@ class CommandQueue {
     );
   }
   async flush(unitId) {
+    var _a, _b;
     if (this.stopped) {
       return;
     }
@@ -129,11 +130,12 @@ class CommandQueue {
       return;
     }
     const { log, send, getUnit, onAccepted, onFailed, onBatchDone, sleep } = this.options;
+    const name = (_b = (_a = getUnit(unitId)) == null ? void 0 : _a.name) != null ? _b : unitId;
     let requests;
     try {
       requests = planRequests(command, getUnit(unitId));
     } catch (error) {
-      log.warn(`Command for unit ${unitId} not sent: ${(0, import_errors.describeError)(error)}`);
+      log.warn(`Command for ${name} not sent: ${(0, import_errors.describeError)(error)}`);
       await onFailed(unitId, command, error);
       onBatchDone(unitId);
       return;
@@ -149,13 +151,13 @@ class CommandQueue {
         }
         try {
           await send(unitId, request);
-          log.debug(`Command for unit ${unitId} accepted: ${JSON.stringify(request)}`);
+          log.debug(`Command for ${name} accepted: ${JSON.stringify(request)}`);
           await onAccepted(unitId, request);
         } catch (error) {
           if (this.stopped) {
             return;
           }
-          log.warn(`Command for unit ${unitId} failed: ${(0, import_errors.describeError)(error)}`);
+          log.warn(`Command for ${name} failed: ${(0, import_errors.describeError)(error)}`);
           await onFailed(unitId, request, error);
         }
       }

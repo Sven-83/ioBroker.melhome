@@ -31,15 +31,17 @@ class OffTimers {
   options;
   now;
   tickMs;
+  nameOf;
   ends = /* @__PURE__ */ new Map();
   tick;
   stopped = false;
   /** @param options - Dependencies and callbacks */
   constructor(options) {
-    var _a, _b;
+    var _a, _b, _c;
     this.options = options;
     this.now = (_a = options.now) != null ? _a : Date.now;
     this.tickMs = (_b = options.tickMs) != null ? _b : TICK_MS;
+    this.nameOf = (_c = options.nameOf) != null ? _c : ((unitId) => unitId);
   }
   /**
    * Starts, restarts or (minutes = 0) cancels the timer of a unit.
@@ -68,7 +70,7 @@ class OffTimers {
   async cancel(unitId) {
     const had = this.ends.delete(unitId);
     if (had) {
-      this.options.log.debug(`Off timer of unit ${unitId} cancelled`);
+      this.options.log.debug(`Off timer of ${this.nameOf(unitId)} cancelled`);
     }
     await this.options.onUpdate(unitId, 0, 0);
   }
@@ -88,19 +90,19 @@ class OffTimers {
       await this.options.onUpdate(unitId, Math.ceil((endTime - now) / 1e3), endTime);
       this.ensureTick();
       this.options.log.info(
-        `Off timer of unit ${unitId} restored (${Math.ceil((endTime - now) / 6e4)} min left)`
+        `Off timer of ${this.nameOf(unitId)} restored (${Math.ceil((endTime - now) / 6e4)} min left)`
       );
       return;
     }
     await this.options.onUpdate(unitId, 0, 0);
     if (now - endTime <= EXPIRED_GRACE_MS) {
       this.options.log.info(
-        `Off timer of unit ${unitId} expired while the adapter was stopped - switching off now`
+        `Off timer of ${this.nameOf(unitId)} expired while the adapter was stopped - switching off now`
       );
       await this.options.onExpire(unitId);
     } else {
       this.options.log.info(
-        `Off timer of unit ${unitId} expired long ago while the adapter was stopped - ignored`
+        `Off timer of ${this.nameOf(unitId)} expired long ago while the adapter was stopped - ignored`
       );
     }
   }
@@ -139,7 +141,7 @@ class OffTimers {
       if (end <= now) {
         this.ends.delete(unitId);
         await this.options.onUpdate(unitId, 0, 0);
-        this.options.log.info(`Off timer of unit ${unitId} elapsed - switching off`);
+        this.options.log.info(`Off timer of ${this.nameOf(unitId)} elapsed - switching off`);
         await this.options.onExpire(unitId);
       } else {
         await this.options.onUpdate(unitId, Math.ceil((end - now) / 1e3), end);

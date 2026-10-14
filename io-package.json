@@ -119,6 +119,19 @@
                 "def": false
             },
             "native": {}
+        },
+        {
+            "_id": "info.realtime",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Real-time connection (WebSocket) open",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
         }
     ]
 }

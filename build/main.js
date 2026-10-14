@@ -27,6 +27,7 @@ var import_client = require("./lib/api/client");
 var import_connection = require("./lib/api/connection");
 var import_errors = require("./lib/api/errors");
 var import_http = require("./lib/api/http");
+var import_websocket = require("./lib/api/websocket");
 var import_ata = require("./lib/devices/ata");
 var import_telemetry = require("./lib/devices/telemetry");
 const MIN_POLL_INTERVAL_S = 60;
@@ -36,6 +37,7 @@ class Melcloudhome extends utils.Adapter {
   connection;
   devices;
   telemetry;
+  realtime;
   knownUnitCount;
   constructor(options = {}) {
     super({
@@ -52,6 +54,7 @@ class Melcloudhome extends utils.Adapter {
   async onReady() {
     var _a, _b;
     await this.setState("info.connection", false, true);
+    await this.setState("info.realtime", false, true);
     const email = ((_a = this.config.email) != null ? _a : "").trim();
     const password = (_b = this.config.password) != null ? _b : "";
     if (!email || !password) {
@@ -100,10 +103,34 @@ class Melcloudhome extends utils.Adapter {
       pollIntervalMs: pollInterval * 1e3,
       scheduler,
       onConnectionChange: async (connected) => {
+        var _a2, _b2;
         await this.setState("info.connection", connected, true);
+        if (connected) {
+          (_a2 = this.realtime) == null ? void 0 : _a2.start();
+        } else {
+          (_b2 = this.realtime) == null ? void 0 : _b2.stop();
+        }
       },
       onContext: (context) => this.onContext(context)
     });
+    if (this.config.realtime) {
+      this.realtime = new import_websocket.RealtimeConnection({
+        getHash: () => client.getWebSocketHash(),
+        scheduler,
+        log: this.log,
+        onUnitEvent: () => {
+          var _a2;
+          return (_a2 = this.connection) == null ? void 0 : _a2.requestRefresh();
+        },
+        onConnectionChange: async (connected) => {
+          var _a2;
+          await this.setState("info.realtime", connected, true);
+          if (connected) {
+            (_a2 = this.connection) == null ? void 0 : _a2.requestRefresh();
+          }
+        }
+      });
+    }
     this.subscribeStates("devices.*.control.*");
     this.log.info(
       `Starting (polling every ${pollInterval} s, real-time ${this.config.realtime ? "enabled" : "disabled"})`
@@ -152,13 +179,15 @@ class Melcloudhome extends utils.Adapter {
    * @param callback - Callback function
    */
   onUnload(callback) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     try {
-      (_a = this.connection) == null ? void 0 : _a.stop();
-      (_b = this.telemetry) == null ? void 0 : _b.stop();
-      (_c = this.devices) == null ? void 0 : _c.stop();
-      (_d = this.http) == null ? void 0 : _d.abort();
+      (_a = this.realtime) == null ? void 0 : _a.stop();
+      (_b = this.connection) == null ? void 0 : _b.stop();
+      (_c = this.telemetry) == null ? void 0 : _c.stop();
+      (_d = this.devices) == null ? void 0 : _d.stop();
+      (_e = this.http) == null ? void 0 : _e.abort();
       void this.setState("info.connection", false, true);
+      void this.setState("info.realtime", false, true);
       callback();
     } catch (error) {
       this.log.error(`Error during unloading: ${error.message}`);

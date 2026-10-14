@@ -31,6 +31,12 @@ This adapter does **not** work with the classic MELCloud (use [ioBroker.melcloud
 | Real-time updates | Use the WebSocket push connection. Polling remains active as fallback. |
 | Polling interval | REST polling interval in seconds (minimum 60 to respect the cloud rate limits). |
 
+The state `info.realtime` shows whether the WebSocket is open. `info.connection` only depends on the REST connection.
+
+### Known limitations
+- **Horizontal vane swing:** After a fixed horizontal position, the cloud often ignores a new "Swing" command until the unit reports its state again (on a room temperature change or when switched off and on). This also happens with the official app. The adapter remembers the swing request for 30 minutes and sends it again automatically once the unit reports its old position (up to 3 times).
+- Until the unit reports again, the cloud shows the commanded values, not the values the unit actually applied.
+
 ---
 
 ## Deutsch
@@ -49,6 +55,12 @@ Der Adapter funktioniert **nicht** mit der klassischen MELCloud (dafür gibt es 
 | E-Mail / Passwort | Zugangsdaten für MELCloud Home. Das Passwort wird verschlüsselt gespeichert. |
 | Echtzeit-Aktualisierung | WebSocket-Push-Verbindung nutzen. Polling bleibt als Rückfallebene aktiv. |
 | Abfrageintervall | REST-Abfrage in Sekunden (mindestens 60, um die Cloud-Limits einzuhalten). |
+
+Der State `info.realtime` zeigt, ob die WebSocket-Verbindung offen ist. `info.connection` hängt nur an der REST-Verbindung.
+
+### Bekannte Einschränkungen
+- **Seitenlamelle Swing:** Nach einer festen Seitenposition ignoriert die Cloud einen neuen „Swing“-Befehl oft, bis sich das Gerät wieder meldet (bei einer Änderung der Raumtemperatur oder nach Aus/Ein). Das passiert auch in der offiziellen App. Der Adapter merkt sich den Swing-Wunsch 30 Minuten und sendet ihn automatisch erneut, sobald das Gerät seine alte Position meldet (bis zu 3-mal).
+- Bis sich das Gerät wieder meldet, zeigt die Cloud die befohlenen Werte, nicht die tatsächlich übernommenen.
 
 ---
 
@@ -70,6 +82,7 @@ MELCloud and Mitsubishi Electric are trademarks of their respective owners. Use 
 -->
 ### **WORK IN PROGRESS**
 * (Sven-83) initial project setup
+* (Sven-83) real-time updates via WebSocket (`info.realtime`), polling continues as fallback
 
 ## License
 MIT License
