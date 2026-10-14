@@ -59,7 +59,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
   - ☑ 2026-10-13 Lüfter 3 → 2, Höhenlamelle 5 → 3, Seitenlamelle Swing → Mitte und zurück: je PUT 200, ack=true, Cloud nach Sperre + App/Gerät bestätigt
   - ☑ 2026-10-13 Seitenlamelle Swing: Ursache gefunden (Cloud verwirft Swing bis zum nächsten Gerätebericht, betrifft auch die offizielle App, api.md §9.1). Kein Adapterfehler.
   - ◐ Swing-Umgehung eingebaut (`ata.ts`, `checkSwingWish`): Wunsch 30 min merken; zeigt `/context` erst Swing und dann wieder die alte Position, Swing erneut senden (max. 3×, Info-Log). 8 Unit-Tests. Live-Test steht aus.
-  - ☐ Prüfen (nur lesend), ob sich die echte Lamellenstellung abfragen lässt: Telemetrie-`measure=`-Werte, Web-App beim Öffnen eines Geräts, „Gerät soll sich melden“-Befehl (klassische MELCloud). Falls ja: vor Swing echte Stellung holen.
+  - ☑ 2026-10-14 geprüft (nur lesend): Echte Lamellenstellung ist **nicht** abfragbar. Telemetrie nimmt nur `rssi` an, ein „Gerät soll sich melden“-Befehl ist nicht bekannt (api.md §9.1). Umgehung bleibt.
   - ☐ Abschalt-Timer (1 min), danach Einschalten mit Modus
   - Hinweis: Windows 11 ohne `wmic` → `dev-server watch` stürzt ab (nodemon), `dev-server run` verwenden
 

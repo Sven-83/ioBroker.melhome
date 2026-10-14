@@ -524,6 +524,15 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
 - Direkt nach so einem Bericht wirkt Swing sofort (Vorhersage getestet: Bericht „4“ um 22:33:59, Swing 22:39 ✔).
 - **Umgehung (Plan):** Swing-Wunsch merken; meldet `/context`/WS danach einen neuen Ist-Wert (≠ Swing), Swing
   automatisch erneut senden. Auto (`0`) zeigte am Gerät keine sichtbare Bewegung – vermutlich gleiches Verhalten.
+- **Echte Stellung abfragen – nicht möglich (Probe 2026-10-14, nur GET, `PROBE_MEASURES=1`):**
+  - `/telemetry/telemetry/actual` (Mobile BFF) nimmt nur noch `measure=rssi` an (200). Alle anderen Namen → **400**,
+    auch die früher dokumentierten `room_temperature` / `set_temperature` sowie geratene Lamellen-, Lüfter-, Power-
+    und Modus-Namen.
+  - `/telemetry/telemetry/operationmode/{id}` → 404, `/report/v1/comfort-graph` (Trendsummary-Parameter) → 500.
+  - Einen Befehl „Gerät soll sich melden“ kennt auch die Referenz-Integration nicht (keine Doku, keine App-Mitschnitte).
+  - Die Referenz bestätigt das Modell an anderer Stelle: Issue #310 (`/context` meldet Power an, Gerät ist aus), danach
+    ADR-026 „jeden Befehl senden, nie gegen den Cache entprellen“. Unser Adapter entprellt ebenfalls nicht gegen `/context`.
+  - Folge: Die Umgehung über Swing-Wunsch + Wiederholung nach Gerätebericht bleibt der Weg.
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),
