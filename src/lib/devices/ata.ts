@@ -813,7 +813,7 @@ export class AtaDevices implements TelemetrySink {
         wish.retries++;
         wish.stored = false;
         this.log.info(
-            `${unit.name}: the unit still reports horizontal vane position ${String(reported)} - ` +
+            `${unit.name}: the unit still reports horizontal vane position ${unit.vaneHorizontalDirection} - ` +
                 `sending swing again (${wish.retries}/${SWING_RETRY_MAX})`,
         );
         this.guards.set(`${unit.id}.vaneHorizontalDirection`, {

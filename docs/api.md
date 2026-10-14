@@ -533,6 +533,11 @@ Anonymisierte Antworten liegen in `test/fixtures/live/`, Tests in `src/lib/api/l
   - Die Referenz bestätigt das Modell an anderer Stelle: Issue #310 (`/context` meldet Power an, Gerät ist aus), danach
     ADR-026 „jeden Befehl senden, nie gegen den Cache entprellen“. Unser Adapter entprellt ebenfalls nicht gegen `/context`.
   - Folge: Die Umgehung über Swing-Wunsch + Wiederholung nach Gerätebericht bleibt der Weg.
+- **Live-Test der Umgehung 2026-10-14 (Wohnraum, Svens OK):**
+  - Gerät aus, Links → Swing gesendet, dann eingeschaltet: Gerät übernimmt Swing direkt (letzter Befehl wirkt beim
+    Einschalten), keine Wiederholung nötig.
+  - Gerät an, letzter Bericht Swing: Links (wirkt) → Swing 09:33:12 (PUT 200, Lamelle **bleibt links** – Problem
+    nachgestellt) → Aus/Ein → Bericht Links → Adapter 09:34:14 „sending swing again (1/3)“ → Lamelle schwenkt ✔.
 
 Weitere Beobachtungen in `/context` (werden toleriert, v1 nutzt sie nicht): `connectedInterfaceType`
 (`melCloudWiFi`), `energyProducedOptIn`, `unitSettings`, `scenes`, Konto-Limits (`numberOfDevicesAllowed` …),

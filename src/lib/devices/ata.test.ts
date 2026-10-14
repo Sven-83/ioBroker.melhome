@@ -314,7 +314,9 @@ describe('devices/ata', () => {
             await flush(env);
             expect(env.sent).to.deep.equal([SWING, SWING]);
             expect(env.port.val(`${L}.control.vaneHorizontalDirection`)).to.equal(12);
-            expect(env.log.at('info').some(m => m.includes('sending swing again (1/3)'))).to.equal(true);
+            expect(
+                env.log.at('info').some(m => m.includes('position RightCentre - sending swing again (1/3)')),
+            ).to.equal(true);
         });
 
         it('does not repeat before the cloud has stored the swing', async () => {
