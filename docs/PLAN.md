@@ -89,7 +89,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ◐ Visueller Test 2026-10-14 (dev-server mit web 9.1.14, Edge headless): 900 px, 768 px, 375 px, DE + EN, Werte = States ✔. Offen: VIS-2-iframe auf dem Produktivsystem
 - ☑ Bedientest 2026-10-14 (Sven, echte Befehle): Ein/Aus, Modi, Solltemperatur, Lüfter, Lamellen-Positionen ✔. Befunde:
   - ☑ Timer sendete nichts: Bestätigen rundete auf 5 min (1 min → 0). Jetzt wird der angezeigte Minutenwert gesendet. Live: Timer + Countdown ✔
-  - ☑ Lamelle Swing/Auto wirkt nach fester Position nicht – Cloud-Verhalten, auch mit der offiziellen App (api.md §9.1). Die Wiederholung gilt jetzt auch für Auto (beide Lamellen).
+  - ☑ Lamelle Swing/Auto wirkt nach fester Position nicht – Cloud-Verhalten, auch mit der offiziellen App (api.md §9.1). Die Wiederholung gilt jetzt auch für Auto (beide Lamellen). Auto wirkt auch so nicht (Seitenlamelle, Gegenprobe mit der App) → Auto-Schaltflächen im Dashboard entfernt (Entscheidung Sven, `core.vaneButtonCodes`). Der State akzeptiert Auto weiterhin.
   - ☐ „Heizen schaltet aus“ – auch am selben Gerät allein (Sven), also **kein** Moduskonflikt. Cloud meldet weiter `power` an, PUT `{"operationMode":"Heat"}` mit 200 angenommen. Verdacht: kein Heizbedarf (Raum 22 °C, Soll 21 °C) bzw. Mitsubishi-Anlaufschutz beim Heizen (3–5 min). Test offen: Heizen mit Soll 25 °C, 5 min warten, Anzeige der App vergleichen.
   - ☑ Badge „Moduskonflikt“ (Entscheidung Sven: bleibt): eingeschaltete Multi-Split-Geräte eines Gebäudes mit Heizen gegen Kühlen/Trocknen (`core.modeConflicts`). ☐ Live-Test mit beiden Räumen
 - Dry-Run-Test im Browser: Edge headless über CDP, `setState` des Sockets wird abgefangen (kein Befehl an die Geräte)

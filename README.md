@@ -110,6 +110,7 @@ MELCloud and Mitsubishi Electric are trademarks of their respective owners. Use 
 * (Sven-83) climate dashboard served by the web adapter, room icons in the instance settings
 * (Sven-83) dashboard: off timer sends the minutes shown on the wheel, mode conflict hint for multi-split systems
 * (Sven-83) vane auto is repeated like swing when the unit did not apply it
+* (Sven-83) dashboard: no vane auto buttons (the units do not apply vane auto reliably)
 
 ## License
 MIT License

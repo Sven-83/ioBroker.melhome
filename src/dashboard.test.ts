@@ -30,6 +30,8 @@ describe('dashboard core', () => {
         expect(core.codesOf({ 7: 'Swing', 1: 'P1', 0: 'Auto' })).to.deep.equal([0, 1, 7]);
         expect(core.codesOf({ x: 'bad', '-1': 'bad', 2: 'ok' })).to.deep.equal([2]);
         expect(core.codesOf(null)).to.deep.equal([]);
+        expect(core.vaneButtonCodes({ 0: 'Auto', 1: 'P1', 5: 'P5', 7: 'Swing' })).to.deep.equal([1, 5, 7]);
+        expect(core.vaneButtonCodes(null)).to.deep.equal([]);
     });
 
     it('picks the temperature range of the mode from the capabilities', () => {

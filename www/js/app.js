@@ -300,7 +300,7 @@
         for (const axis of ['h', 'v']) {
             const relative = axis === 'h' ? 'control.vaneHorizontalDirection' : 'control.vaneVerticalDirection';
             const box = q(`.row-vane-${axis} .vane-icons`);
-            for (const code of C.codesOf(common(unitId, relative).states)) {
+            for (const code of C.vaneButtonCodes(common(unitId, relative).states)) {
                 const button = document.createElement('div');
                 button.className = 'vane-btn';
                 button.dataset.code = String(code);

@@ -305,6 +305,17 @@
     }
 
     /**
+     * Vane buttons of the dashboard: all codes except auto. The units do not apply vane auto
+     * reliably (docs/api.md section 9.1), so the dashboard does not offer it (decision Sven).
+     *
+     * @param {unknown} states - common.states of a vane state
+     * @returns {number[]}
+     */
+    function vaneButtonCodes(states) {
+        return codesOf(states).filter(code => code !== 0);
+    }
+
+    /**
      * Allowed target temperature range for a mode from the capability states.
      *
      * @param {Record<string, unknown>} caps - Capability values (minTempHeat, maxTempHeat, ...)
@@ -561,6 +572,7 @@
         vaneIconSvg,
         vaneLabel,
         codesOf,
+        vaneButtonCodes,
         temperatureRange,
         stepTemperature,
         needleAngle,
