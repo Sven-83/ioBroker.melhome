@@ -100,6 +100,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☑ Unit- + Integrationstests grün (173 Unit, 61 Package, Integration), 2026-10-15
 - ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> Adapter am 2026-10-15 in `melhome` umbenannt. Offen: E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). GitHub-Prüfungen nach Repo-Anlage wiederholen.
 - ◐ Audit mit Universal Audit Template v1.2 am 2026-10-15: `docs/audit/AUDIT-2026-10-15.md` – 0 kritisch, 0 hoch, 8 mittel (M1 HTTP 429/Retry-After, M2 Start-Jitter, M3 *Async, M4 tier 2, M5 Admin-Validierung, M6 SECURITY.md, M7 README, M8 Timeouts), 11 niedrig. Phase 2 behoben 2026-10-15 (M1–M5, M8, N3–N6, N9); N1 zurückgenommen (W1137); M6 + M7 behoben (SECURITY.md, README). Offen: N2 (Live-Login), N7, N8, N10, N11; Private Vulnerability Reporting beim Anlegen des GitHub-Repos aktivieren.
+- ☑ Voraussetzungen Produktivsystem geprüft 2026-10-15: Node 22.23, js-controller 7.2.2, admin 8.0.14, web 8.0.0 (Port 8082, Socket integriert, ohne Anmeldung) – erfüllt. Klassischer `melcloud`-Adapter läuft dort → Parallelbetrieb bei der Einrichtung klären.
 
 ## Phase 6 – Release
 - ☐ README DE/EN, Changelog, Screenshots
