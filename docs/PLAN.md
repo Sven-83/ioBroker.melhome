@@ -2,7 +2,13 @@
 
 Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
-## Stand 2026-10-12 / Nächster Einstieg
+## Stand 2026-10-15 / Nächster Einstieg
+- Produktivbetrieb seit 2026-10-15: klassischer `melcloud.0` gelöscht, `melhome.0` per `iob url` von GitHub `main` installiert, 2 Geräte verbunden, Echtzeit aktiv. Dashboard als VIS-2-iframe (`/melhome/index.html`, 1050×575 px) eingerichtet.
+- Dashboard für Touch vergrößert (54141b3): Knöpfe ≥ 44 px, aktive Knöpfe gefüllt, klarere Lamellen-Icons, Lüfterstufen als Ziffern, Spalten exakt bündig. Auf dem Pi geprüft (Sven: „sieht gut aus“).
+- **Nächster Schritt:** Betrieb einige Tage beobachten (Log, Reconnects, Rate-Limits). Optional: dev-server neu aufsetzen (alte Instanz `melcloudhome.0`), N2 (OAuth-state) dort live testen, Konflikt-Badge live mit beiden Räumen.
+- Keine Releases/Tags (Entscheidung Sven) – nur grüne Stände auf `main` pushen.
+
+## Stand 2026-10-12 (Archiv)
 - Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account. Ergebnis: `docs/api.md`.
 - Phase 1 erledigt (Gerüst, Admin-UI). GitHub-Repo öffentlich seit 2026-10-15.
 - Phase 2 erledigt (nur gegen die simulierte Cloud getestet): Login, Token-Erneuerung, REST-Client, Parser, Connection-Manager. 84 Unit-Tests, Lint, Build und Integrationstest grün.
@@ -86,7 +92,8 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☑ Cloud-Strings nur per `textContent`, `innerHTML` nur für konstante SVGs; Fonts (Fraunces opsz, Work Sans, OFL) lokal in `www/fonts/`
 - ☑ Layout dynamisch 1…n Geräte; bei 2 Geräten identisch zur Referenz (bis auf ausgeblendete Zeilen für fehlende Funktionen)
 - ☑ Unverändert übernommen: Farben/Tokens, Drehregler, Lüfterpunkte, 5-Segment-Lamellen-Icons, Auto/Swing-Icons (Split-Button **entfernen**, gibt es in MELCloud Home nicht), Timer-Rad, Online-Punkt, Störungs-Badge
-- ◐ Visueller Test 2026-10-14 (dev-server mit web 9.1.14, Edge headless): 900 px, 768 px, 375 px, DE + EN, Werte = States ✔. Offen: VIS-2-iframe auf dem Produktivsystem
+- ☑ Visueller Test 2026-10-14 (dev-server mit web 9.1.14, Edge headless): 900 px, 768 px, 375 px, DE + EN, Werte = States ✔. VIS-2-iframe auf dem Produktivsystem eingerichtet 2026-10-15 ✔
+- ☑ Touch-Überarbeitung 2026-10-15 (54141b3, Wunsch Sven): Referenz-Layout beibehalten, alle Knöpfe ≥ 44 px, Lüfter-/Lamellen-Spalten bündig (52×46 px), aktive Knöpfe gefüllt, Lamellen-Segmente per CSS (aktiv voll, Rest blass, Drehpunkt), Lüfterstufen als Ziffern; Handy: Beschriftung über den Knöpfen. Auf dem Pi bei 1050×575 geprüft ✔
 - ☑ Bedientest 2026-10-14 (Sven, echte Befehle): Ein/Aus, Modi, Solltemperatur, Lüfter, Lamellen-Positionen ✔. Befunde:
   - ☑ Timer sendete nichts: Bestätigen rundete auf 5 min (1 min → 0). Jetzt wird der angezeigte Minutenwert gesendet. Live: Timer + Countdown ✔
   - ☑ Lamelle Swing/Auto wirkt nach fester Position nicht – Cloud-Verhalten, auch mit der offiziellen App (api.md §9.1). Die Wiederholung gilt jetzt auch für Auto (beide Lamellen). Auto wirkt auch so nicht (Seitenlamelle, Gegenprobe mit der App) → Auto-Schaltflächen im Dashboard entfernt (Entscheidung Sven, `core.vaneButtonCodes`). Der State akzeptiert Auto weiterhin.
@@ -100,7 +107,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - ☑ Unit- + Integrationstests grün (173 Unit, 61 Package, Integration), 2026-10-15
 - ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> Adapter am 2026-10-15 in `melhome` umbenannt. Offen: E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). Gegen das echte Repo am 2026-10-15 wiederholt: CI grün (Node 22/24/26 × Linux/Windows/macOS); offen E2000 (kein npm), E3012 (kein deploy-Job), E3032 (Version nicht getaggt → erstes Release), E4051 (Fehlalarm).
 - ◐ Audit mit Universal Audit Template v1.2 am 2026-10-15: `docs/audit/AUDIT-2026-10-15.md` – 0 kritisch, 0 hoch, 8 mittel (M1 HTTP 429/Retry-After, M2 Start-Jitter, M3 *Async, M4 tier 2, M5 Admin-Validierung, M6 SECURITY.md, M7 README, M8 Timeouts), 11 niedrig. Phase 2 behoben 2026-10-15 (M1–M5, M8, N3–N6, N9); N1 zurückgenommen (W1137); M6 + M7 behoben (SECURITY.md, README). Offen: N2 (Live-Login), N7, N8, N10, N11; Private Vulnerability Reporting beim Anlegen des GitHub-Repos aktivieren.
-- ☑ Voraussetzungen Produktivsystem geprüft 2026-10-15: Node 22.23, js-controller 7.2.2, admin 8.0.14, web 8.0.0 (Port 8082, Socket integriert, ohne Anmeldung) – erfüllt. Klassischer `melcloud`-Adapter läuft dort → Parallelbetrieb bei der Einrichtung klären.
+- ☑ Voraussetzungen Produktivsystem geprüft 2026-10-15: Node 22.23, js-controller 7.2.2, admin 8.0.14, web 8.0.0 (Port 8082, Socket integriert, ohne Anmeldung) – erfüllt. Klassischer `melcloud`-Adapter wurde von Sven gelöscht (kein Parallelbetrieb); `melhome.0` läuft dort seit 2026-10-15.
 
 ## Phase 6 – Release
 - ☐ README DE/EN, Changelog, Screenshots
