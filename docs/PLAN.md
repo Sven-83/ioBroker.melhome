@@ -4,7 +4,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
 ## Stand 2026-10-12 / Nächster Einstieg
 - Phase 0 erledigt bis auf die Gegenprüfung mit Svens Account. Ergebnis: `docs/api.md`.
-- Phase 1 lokal erledigt (Gerüst, Admin-UI). GitHub-Repo noch nicht angelegt.
+- Phase 1 erledigt (Gerüst, Admin-UI). GitHub-Repo öffentlich seit 2026-10-15.
 - Phase 2 erledigt (nur gegen die simulierte Cloud getestet): Login, Token-Erneuerung, REST-Client, Parser, Connection-Manager. 84 Unit-Tests, Lint, Build und Integrationstest grün.
 - Entscheidungen von Sven (Details in api.md): State-Codes/Symbole wie Jäger-Dashboard (§5), Split entfällt (MELCloud Home kann es nicht, §5.4), kein Modell (nur Raumname), Tokens nur im RAM, Wiederverbindung in jeder Lage (§2.3), Außentemperatur in v1.
 - Autor: `Sven-83 <svmorgen@gmx.de>` (öffentlich sichtbar, mit Sven abgestimmt).
@@ -29,7 +29,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ `@iobroker/create-adapter` v3.1.5 (TypeScript, jsonConfig, ESLint/Prettier, release-script, GitHub Actions, dev-server lokal), ohne CLAUDE.md / docs / reference zu überschreiben
 - ☑ Ordnerstruktur laut CLAUDE.md (Rümpfe in `src/lib/api`, `src/lib/devices`, `mapping.ts`, `www/`, `test/fixtures/`)
 - ◐ Admin: E-Mail, Passwort (encrypted + protected), Polling-Intervall (min. 60 s), Echtzeit an/aus – ☐ Geräte-Icons fürs Dashboard (Phase 4b)
-- ◐ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☐ GitHub-Repo `Sven-83/ioBroker.melhome` anlegen + pushen (nach OK von Sven)
+- ☑ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☑ GitHub-Repo `Sven-83/ioBroker.melhome` öffentlich angelegt und gepusht 2026-10-15 (Verlauf vorher auf persönliche Daten geprüft), Themen gesetzt, Private Vulnerability Reporting aktiv
 
 ## Phase 2 – API-Client
 - ☑ `http.ts`: alle Requests seriell mit min. 0,5 s Abstand (auch Login), 30 s Timeout, Abbruch beim Unload
@@ -98,7 +98,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 
 ## Phase 5 – Qualität
 - ☑ Unit- + Integrationstests grün (173 Unit, 61 Package, Integration), 2026-10-15
-- ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> Adapter am 2026-10-15 in `melhome` umbenannt. Offen: E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). GitHub-Prüfungen nach Repo-Anlage wiederholen.
+- ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> Adapter am 2026-10-15 in `melhome` umbenannt. Offen: E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). Gegen das echte Repo am 2026-10-15 wiederholt: CI grün (Node 22/24/26 × Linux/Windows/macOS); offen E2000 (kein npm), E3012 (kein deploy-Job), E3032 (Version nicht getaggt → erstes Release), E4051 (Fehlalarm).
 - ◐ Audit mit Universal Audit Template v1.2 am 2026-10-15: `docs/audit/AUDIT-2026-10-15.md` – 0 kritisch, 0 hoch, 8 mittel (M1 HTTP 429/Retry-After, M2 Start-Jitter, M3 *Async, M4 tier 2, M5 Admin-Validierung, M6 SECURITY.md, M7 README, M8 Timeouts), 11 niedrig. Phase 2 behoben 2026-10-15 (M1–M5, M8, N3–N6, N9); N1 zurückgenommen (W1137); M6 + M7 behoben (SECURITY.md, README). Offen: N2 (Live-Login), N7, N8, N10, N11; Private Vulnerability Reporting beim Anlegen des GitHub-Repos aktivieren.
 - ☑ Voraussetzungen Produktivsystem geprüft 2026-10-15: Node 22.23, js-controller 7.2.2, admin 8.0.14, web 8.0.0 (Port 8082, Socket integriert, ohne Anmeldung) – erfüllt. Klassischer `melcloud`-Adapter läuft dort → Parallelbetrieb bei der Einrichtung klären.
 
