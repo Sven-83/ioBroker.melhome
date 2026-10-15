@@ -16,7 +16,7 @@ const S = `devices.${SECOND}`;
  * @param id - Relative id
  */
 function stateCommon(port: FakePort, id: string): Partial<ioBroker.StateCommon> | undefined {
-    return port.objects.get(`melcloudhome.0.${id}`)?.common as Partial<ioBroker.StateCommon> | undefined;
+    return port.objects.get(`melhome.0.${id}`)?.common as Partial<ioBroker.StateCommon> | undefined;
 }
 
 function liveContext(): UserContext {
@@ -110,17 +110,17 @@ describe('devices/ata', () => {
         it('creates device, channels and states keyed by the unit UUID', async () => {
             const { devices, port } = setup();
             await devices.update(liveContext());
-            const device = port.objects.get(`melcloudhome.0.${L}`)!;
+            const device = port.objects.get(`melhome.0.${L}`)!;
             expect(device.type).to.equal('device');
             expect(device.common?.name).to.equal('Living room');
             expect((device.common as ioBroker.DeviceCommon).statusStates?.onlineId).to.equal(
-                `melcloudhome.0.${L}.info.deviceOnline`,
+                `melhome.0.${L}.info.deviceOnline`,
             );
             for (const id of ['info', 'control', 'energy', 'capabilities']) {
-                expect(port.objects.get(`melcloudhome.0.${L}.${id}`)?.type).to.equal('channel');
+                expect(port.objects.get(`melhome.0.${L}.${id}`)?.type).to.equal('channel');
             }
-            expect(port.objects.get(`melcloudhome.0.${L}.control.power`)?.common?.role).to.equal('switch.power');
-            expect(port.objects.get(`melcloudhome.0.${L}.control.targetTemp`)?.common).to.include({
+            expect(port.objects.get(`melhome.0.${L}.control.power`)?.common?.role).to.equal('switch.power');
+            expect(port.objects.get(`melhome.0.${L}.control.targetTemp`)?.common).to.include({
                 role: 'level.temperature',
                 min: 10,
                 max: 31,
@@ -142,7 +142,7 @@ describe('devices/ata', () => {
             await devices.update(liveContext());
             expect(stateCommon(port, `${L}.control.vaneHorizontalDirection`)?.write).to.equal(true);
             expect(stateCommon(port, `${S}.control.vaneHorizontalDirection`)?.write).to.equal(false);
-            expect(port.objects.has(`melcloudhome.0.${L}.control.standby`)).to.equal(true);
+            expect(port.objects.has(`melhome.0.${L}.control.standby`)).to.equal(true);
         });
 
         it('writes the state values as dashboard codes with ack', async () => {
@@ -278,7 +278,7 @@ describe('devices/ata', () => {
         it('ignores acknowledged writes and foreign ids', async () => {
             const env = setup();
             await env.devices.update(liveContext());
-            await env.devices.handleCommand(`melcloudhome.0.${L}.control.power`, {
+            await env.devices.handleCommand(`melhome.0.${L}.control.power`, {
                 val: true,
                 ack: true,
             } as ioBroker.State);
@@ -286,7 +286,7 @@ describe('devices/ata', () => {
                 val: true,
                 ack: false,
             } as ioBroker.State);
-            await env.devices.handleCommand(`melcloudhome.0.${L}.info.roomTemp`, {
+            await env.devices.handleCommand(`melhome.0.${L}.info.roomTemp`, {
                 val: 1,
                 ack: false,
             } as ioBroker.State);
@@ -496,7 +496,7 @@ describe('devices/ata', () => {
             await env.devices.onEnergy(LIVING, new Map([[hour, 500]]));
             expect(env.port.val(`${L}.energy.total`)).to.equal(0.2);
             expect(env.port.val(`${L}.energy.lastHour`)).to.equal(0.5);
-            const native = env.port.objects.get(`melcloudhome.0.${L}`)?.native as {
+            const native = env.port.objects.get(`melhome.0.${L}`)?.native as {
                 energyTracker: { totalWh: number };
             };
             expect(native.energyTracker.totalWh).to.equal(200);

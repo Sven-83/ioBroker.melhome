@@ -1,5 +1,5 @@
 /*
- * ioBroker.melcloudhome
+ * ioBroker.melhome
  * Adapter lifecycle only - API details live in lib/api, device logic in lib/devices.
  */
 
@@ -19,7 +19,7 @@ const MIN_POLL_INTERVAL_S = 60;
 /** Maximum REST polling interval in seconds */
 const MAX_POLL_INTERVAL_S = 3600;
 
-class Melcloudhome extends utils.Adapter {
+class Melhome extends utils.Adapter {
     private http: HttpTransport | undefined;
     private connection: ConnectionManager | undefined;
     private devices: AtaDevices | undefined;
@@ -30,7 +30,7 @@ class Melcloudhome extends utils.Adapter {
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
-            name: 'melcloudhome',
+            name: 'melhome',
         });
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
@@ -224,8 +224,8 @@ class Melcloudhome extends utils.Adapter {
 
 if (require.main !== module) {
     // Export the constructor in compact mode
-    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new Melcloudhome(options);
+    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new Melhome(options);
 } else {
     // otherwise start the instance directly
-    (() => new Melcloudhome())();
+    (() => new Melhome())();
 }

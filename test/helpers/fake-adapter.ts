@@ -6,7 +6,7 @@ import type { AdapterPort } from '../../src/lib/devices/ata';
 
 /** Fake object/state database */
 export class FakePort implements AdapterPort {
-    public readonly namespace = 'melcloudhome.0';
+    public readonly namespace = 'melhome.0';
     public readonly objects = new Map<string, ioBroker.PartialObject>();
     public readonly states = new Map<string, ioBroker.State>();
     /** Every state write in order */

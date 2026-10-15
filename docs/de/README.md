@@ -1,4 +1,4 @@
-# ioBroker.melcloudhome – Deutsche Anleitung
+# ioBroker.melhome – Deutsche Anleitung
 
 [English](../../README.md)
 
@@ -22,7 +22,7 @@ Der State `info.realtime` zeigt, ob die WebSocket-Verbindung offen ist. `info.co
 ## Dashboard
 Der Adapter bringt ein Klima-Dashboard mit. Es wird vom **web-Adapter** ausgeliefert (dessen Socket-Schnittstelle muss aktiv sein, das ist die Standardeinstellung):
 
-`http://<iobroker>:8082/melcloudhome/index.html` (für eine zweite Adapter-Instanz `?instance=1` anhängen)
+`http://<iobroker>:8082/melhome/index.html` (für eine zweite Adapter-Instanz `?instance=1` anhängen)
 
 - Zeigt alle Geräte automatisch, aktualisiert live, funktioniert auf Handy und Tablet.
 - Für VIS-2: ein *iframe*-Widget mit dieser URL anlegen.

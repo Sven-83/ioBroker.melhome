@@ -85,7 +85,7 @@ function isFixedPosition(code: ioBroker.StateValue): boolean {
 
 /** Narrow view of the adapter, so this module stays testable */
 export interface AdapterPort {
-    /** Adapter namespace, e.g. melcloudhome.0 */
+    /** Adapter namespace, e.g. melhome.0 */
     namespace: string;
     /** Creates or updates an object (relative id) */
     extendObject(id: string, obj: ioBroker.PartialObject): Promise<void>;

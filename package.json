@@ -1,5 +1,5 @@
 {
-  "name": "iobroker.melcloudhome",
+  "name": "iobroker.melhome",
   "version": "0.0.1",
   "description": "Control Mitsubishi Electric air conditioners via MELCloud Home",
   "author": {
@@ -7,7 +7,7 @@
     "email": "svmorgen@gmx.de"
   },
   "contributors": [],
-  "homepage": "https://github.com/Sven-83/ioBroker.melcloudhome",
+  "homepage": "https://github.com/Sven-83/ioBroker.melhome",
   "license": "MIT",
   "keywords": [
     "melcloud",
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sven-83/ioBroker.melcloudhome.git"
+    "url": "https://github.com/Sven-83/ioBroker.melhome.git"
   },
   "engines": {
     "node": ">= 22"
@@ -78,7 +78,7 @@
     "vane-test": "ts-node --transpile-only tools/vane-test.ts"
   },
   "bugs": {
-    "url": "https://github.com/Sven-83/ioBroker.melcloudhome/issues"
+    "url": "https://github.com/Sven-83/ioBroker.melhome/issues"
   },
   "readmeFilename": "README.md"
 }

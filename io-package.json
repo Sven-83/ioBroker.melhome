@@ -1,6 +1,6 @@
 {
     "common": {
-        "name": "melcloudhome",
+        "name": "melhome",
         "version": "0.0.1",
         "news": {
             "0.0.1": {
@@ -59,10 +59,10 @@
             "license": "MIT"
         },
         "platform": "Javascript/Node.js",
-        "icon": "melcloudhome.png",
+        "icon": "melhome.png",
         "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.melcloudhome/main/admin/melcloudhome.png",
-        "readme": "https://github.com/Sven-83/ioBroker.melcloudhome/blob/main/README.md",
+        "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.melhome/main/admin/melhome.png",
+        "readme": "https://github.com/Sven-83/ioBroker.melhome/blob/main/README.md",
         "loglevel": "info",
         "tier": 3,
         "mode": "daemon",
@@ -86,7 +86,7 @@
         "messagebox": true,
         "localLinks": {
             "_default": {
-                "link": "%web_protocol%://%ip%:%web_port%/melcloudhome/index.html",
+                "link": "%web_protocol%://%ip%:%web_port%/melhome/index.html",
                 "intro": true,
                 "name": {
                     "en": "Climate dashboard",

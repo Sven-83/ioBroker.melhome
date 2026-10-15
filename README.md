@@ -1,12 +1,12 @@
-![Logo](admin/melcloudhome.png)
-# ioBroker.melcloudhome
+![Logo](admin/melhome.png)
+# ioBroker.melhome
 
-[![NPM version](https://img.shields.io/npm/v/iobroker.melcloudhome.svg)](https://www.npmjs.com/package/iobroker.melcloudhome)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.melcloudhome.svg)](https://www.npmjs.com/package/iobroker.melcloudhome)
-![Number of Installations](https://iobroker.live/badges/melcloudhome-installed.svg)
-![Current version in stable repository](https://iobroker.live/badges/melcloudhome-stable.svg)
+[![NPM version](https://img.shields.io/npm/v/iobroker.melhome.svg)](https://www.npmjs.com/package/iobroker.melhome)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.melhome.svg)](https://www.npmjs.com/package/iobroker.melhome)
+![Number of Installations](https://iobroker.live/badges/melhome-installed.svg)
+![Current version in stable repository](https://iobroker.live/badges/melhome-stable.svg)
 
-**Tests:** ![Test and Release](https://github.com/Sven-83/ioBroker.melcloudhome/workflows/Test%20and%20Release/badge.svg)
+**Tests:** ![Test and Release](https://github.com/Sven-83/ioBroker.melhome/workflows/Test%20and%20Release/badge.svg)
 
 > ⚠️ **Work in progress** – not ready for productive use yet.
 
@@ -36,7 +36,7 @@ The state `info.realtime` shows whether the WebSocket is open. `info.connection`
 ### Dashboard
 The adapter ships a climate dashboard. It is served by the **web adapter** (its socket interface must be enabled, which is the default):
 
-`http://<iobroker>:8082/melcloudhome/index.html` (add `?instance=1` for a second adapter instance)
+`http://<iobroker>:8082/melhome/index.html` (add `?instance=1` for a second adapter instance)
 
 - Shows all units automatically, updates live, works on phones and tablets.
 - For VIS-2: add an *iframe* widget with this URL.

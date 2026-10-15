@@ -2,7 +2,7 @@
  * MELCloud Home dashboard - DOM and socket part.
  *
  * Data comes from the socket interface of the web adapter (same origin): all states below
- * melcloudhome.<instance>.devices are loaded once and then subscribed. Commands are plain
+ * melhome.<instance>.devices are loaded once and then subscribed. Commands are plain
  * setState calls with ack=false - the adapter debounces, sends and confirms them.
  *
  * Security: strings from the cloud (room names) only reach the page via textContent.
@@ -13,7 +13,7 @@
 
     const C = window.MelDashCore;
     const instance = C.instanceFromSearch(window.location.search);
-    const namespace = `melcloudhome.${instance}`;
+    const namespace = `melhome.${instance}`;
     const prefix = `${namespace}.devices.`;
     const STEP_DEBOUNCE_MS = 600;
 
@@ -514,7 +514,7 @@
             showBanner('noSocket');
             return;
         }
-        socket = window.io.connect('/', { name: 'melcloudhome-dashboard' });
+        socket = window.io.connect('/', { name: 'melhome-dashboard' });
         socket.on('connect', load);
         socket.on('reconnect', load);
         socket.on('disconnect', () => showBanner('disconnected'));

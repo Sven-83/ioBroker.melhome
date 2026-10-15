@@ -537,7 +537,7 @@
      * Unit ids below `<namespace>.devices.` from object ids, sorted.
      *
      * @param {string[]} ids - Object ids of type device
-     * @param {string} namespace - e.g. melcloudhome.0
+     * @param {string} namespace - e.g. melhome.0
      * @returns {string[]}
      */
     function unitIdsOf(ids, namespace) {

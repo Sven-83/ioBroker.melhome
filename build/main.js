@@ -32,7 +32,7 @@ var import_ata = require("./lib/devices/ata");
 var import_telemetry = require("./lib/devices/telemetry");
 const MIN_POLL_INTERVAL_S = 60;
 const MAX_POLL_INTERVAL_S = 3600;
-class Melcloudhome extends utils.Adapter {
+class Melhome extends utils.Adapter {
   http;
   connection;
   devices;
@@ -42,7 +42,7 @@ class Melcloudhome extends utils.Adapter {
   constructor(options = {}) {
     super({
       ...options,
-      name: "melcloudhome"
+      name: "melhome"
     });
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
@@ -231,8 +231,8 @@ class Melcloudhome extends utils.Adapter {
   }
 }
 if (require.main !== module) {
-  module.exports = (options) => new Melcloudhome(options);
+  module.exports = (options) => new Melhome(options);
 } else {
-  (() => new Melcloudhome())();
+  (() => new Melhome())();
 }
 //# sourceMappingURL=main.js.map

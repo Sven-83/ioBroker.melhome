@@ -154,13 +154,8 @@ describe('dashboard core', () => {
     it('finds unit ids and the instance', () => {
         expect(
             core.unitIdsOf(
-                [
-                    'melcloudhome.0.devices.b',
-                    'melcloudhome.0.devices.a',
-                    'melcloudhome.0.devices.a.info',
-                    'other.0.devices.c',
-                ],
-                'melcloudhome.0',
+                ['melhome.0.devices.b', 'melhome.0.devices.a', 'melhome.0.devices.a.info', 'other.0.devices.c'],
+                'melhome.0',
             ),
         ).to.deep.equal(['a', 'b']);
         expect(core.instanceFromSearch('?instance=2')).to.equal(2);

@@ -1,4 +1,4 @@
-# Projektplan – ioBroker.melcloudhome
+# Projektplan – ioBroker.melhome
 
 Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
@@ -29,7 +29,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 - ☑ `@iobroker/create-adapter` v3.1.5 (TypeScript, jsonConfig, ESLint/Prettier, release-script, GitHub Actions, dev-server lokal), ohne CLAUDE.md / docs / reference zu überschreiben
 - ☑ Ordnerstruktur laut CLAUDE.md (Rümpfe in `src/lib/api`, `src/lib/devices`, `mapping.ts`, `www/`, `test/fixtures/`)
 - ◐ Admin: E-Mail, Passwort (encrypted + protected), Polling-Intervall (min. 60 s), Echtzeit an/aus – ☐ Geräte-Icons fürs Dashboard (Phase 4b)
-- ◐ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☐ GitHub-Repo `Sven-83/ioBroker.melcloudhome` anlegen + pushen (nach OK von Sven)
+- ◐ MIT-Lizenz + Attribution andrew-blake (LICENSE, README) – ☐ GitHub-Repo `Sven-83/ioBroker.melhome` anlegen + pushen (nach OK von Sven)
 
 ## Phase 2 – API-Client
 - ☑ `http.ts`: alle Requests seriell mit min. 0,5 s Abstand (auch Login), 30 s Timeout, Abbruch beim Unload
@@ -74,7 +74,7 @@ Status-Legende: ☐ offen · ◐ in Arbeit · ☑ erledigt
 
 ## Phase 4b – Jäger-Dashboard
 Referenz: `reference/melcloud_vis2_iframe.html`
-- ☑ Nach `www/` übernommen (`index.html`, `dashboard.css`, `js/core.js` Logik, `js/app.js` DOM/Socket); web-Adapter liefert `/melcloudhome/index.html`, Admin-Link per `localLinks`
+- ☑ Nach `www/` übernommen (`index.html`, `dashboard.css`, `js/core.js` Logik, `js/app.js` DOM/Socket); web-Adapter liefert `/melhome/index.html`, Admin-Link per `localLinks`
 - ☑ Datenzugriff: Socket-Client des web-Adapters (`../lib/js/socket.io.js`, gleiche Origin, Login des web-Adapters gilt), `getStates` + `subscribe`, Befehle per `setState` ack=false
 - ☑ Geräte automatisch aus Objektbaum (`getObjectView` device), Instanz per `?instance=N`
 - ☑ Raum-Icons (Sessel, Bett, Schreibtisch, Tisch, Teddy, Innengerät): Tabelle in den Instanz-Einstellungen (`selectSendTo` getUnits) → State `info.icon`; „auto“ = Sessel für das erste, Bett für weitere Geräte
@@ -98,7 +98,7 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 
 ## Phase 5 – Qualität
 - ☑ Unit- + Integrationstests grün (173 Unit, 61 Package, Integration), 2026-10-15
-- ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Offen: Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> E2003/E2005/E6029; E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). GitHub-Prüfungen nach Repo-Anlage wiederholen.
+- ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> Adapter am 2026-10-15 in `melhome` umbenannt. Offen: E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). GitHub-Prüfungen nach Repo-Anlage wiederholen.
 - ☐ Audit mit Universal Audit Template (+ Auth, WebSocket, Rate-Limits, Dashboard-XSS) – ☑ Template liegt vor (`Universal-Audit-Template.md` v1.2)
 
 ## Phase 6 – Release

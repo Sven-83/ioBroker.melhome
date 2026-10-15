@@ -66,7 +66,7 @@
         },
         "_dashboardHint": {
             "type": "staticText",
-            "text": "The dashboard is served by the web adapter at /melcloudhome/index.html",
+            "text": "The dashboard is served by the web adapter at /melhome/index.html",
             "newLine": true,
             "xs": 12,
             "sm": 12,

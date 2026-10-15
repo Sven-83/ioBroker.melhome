@@ -1,4 +1,4 @@
-# MELCloud Home API – Spezifikation für ioBroker.melcloudhome
+# MELCloud Home API – Spezifikation für ioBroker.melhome
 
 > **Quelle / Attribution:** Diese Spezifikation basiert auf der Analyse von
 > [andrew-blake/melcloudhome](https://github.com/andrew-blake/melcloudhome) (Home-Assistant-Integration,
@@ -420,7 +420,7 @@ Kein offizielles Limit dokumentiert; in der Referenz wurde **nie ein HTTP 429 be
 
 ## 8. Mapping API ↔ ioBroker-States (Vorschlag für Phase 3)
 
-Pfad: `melcloudhome.<inst>.devices.<unitId>.…` (`<unitId>` = UUID aus `/context`, nie der Anzeigename).
+Pfad: `melhome.<inst>.devices.<unitId>.…` (`<unitId>` = UUID aus `/context`, nie der Anzeigename).
 Rollen sind Vorschläge und werden in Phase 3 gegen den ioBroker type-detector (Gerätetyp *airCondition*)
 geprüft.
 
