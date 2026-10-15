@@ -97,8 +97,8 @@ Referenz: `reference/melcloud_vis2_iframe.html`
 - Hinweis: Der web-Adapter liefert `system.config` aus seinem Start-Zwischenspeicher – Sprachwechsel greift erst nach Neustart der web-Instanz
 
 ## Phase 5 – Qualität
-- ☐ Unit- + Integrationstests grün, Coverage sinnvoll
-- ☐ Adapter-Checker ohne Errors
+- ☑ Unit- + Integrationstests grün (173 Unit, 61 Package, Integration), 2026-10-15
+- ◐ Adapter-Checker (repochecker 5.23.0, lokal mit GitHub-Stub) 2026-10-15: Code-/Konfig-Befunde behoben (c377b9a). Offen: Namenskonflikt `iobroker.melcloudhome` auf npm (konrad2002, 0.3.1) -> E2003/E2005/E6029; E3012 (kein deploy-Job, bewusst); E4051 Fehlalarm (Drittanbieter-Copyright). GitHub-Prüfungen nach Repo-Anlage wiederholen.
 - ☐ Audit mit Universal Audit Template (+ Auth, WebSocket, Rate-Limits, Dashboard-XSS) – ☑ Template liegt vor (`Universal-Audit-Template.md` v1.2)
 
 ## Phase 6 – Release
