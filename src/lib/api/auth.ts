@@ -21,8 +21,14 @@ import {
     USER_AGENT,
     type Endpoints,
 } from './constants';
-import { CredentialsRejectedError, LoginFlowError, ServiceUnavailableError, TokenRejectedError } from './errors';
-import type { HttpTransport, Logger } from './http';
+import {
+    CredentialsRejectedError,
+    LoginFlowError,
+    RateLimitedError,
+    ServiceUnavailableError,
+    TokenRejectedError,
+} from './errors';
+import { parseRetryAfter, type HttpTransport, type Logger } from './http';
 
 /** OAuth tokens kept in memory */
 export interface TokenSet {
@@ -357,6 +363,9 @@ export class AuthClient {
     }
 
     private throwOnServerError(result: HttpResult): void {
+        if (result.status === 429) {
+            throw new RateLimitedError(parseRetryAfter(result.headers.get('retry-after'), this.now()));
+        }
         if (result.status >= 500) {
             throw new ServiceUnavailableError(result.status);
         }

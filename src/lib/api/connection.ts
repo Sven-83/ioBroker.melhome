@@ -14,6 +14,7 @@ import {
     CredentialsRejectedError,
     LoginFlowError,
     NetworkError,
+    RateLimitedError,
     ServiceUnavailableError,
     TokenRejectedError,
     describeError,
@@ -29,7 +30,7 @@ export interface ContextSource {
     getContext(): Promise<UserContext>;
 }
 
-export type FailureKind = 'network' | 'service' | 'login' | 'credentials' | 'api';
+export type FailureKind = 'network' | 'service' | 'rateLimit' | 'login' | 'credentials' | 'api';
 
 interface Backoff {
     initialMs: number;
@@ -43,6 +44,8 @@ const MINUTE = 60 * SECOND;
 export const BACKOFF: Readonly<Record<FailureKind, Backoff>> = Object.freeze({
     network: { initialMs: 30 * SECOND, maxMs: 5 * MINUTE },
     service: { initialMs: 120 * SECOND, maxMs: 15 * MINUTE },
+    // HTTP 429: at least as long as Retry-After demands
+    rateLimit: { initialMs: 120 * SECOND, maxMs: 30 * MINUTE },
     login: { initialMs: 60 * SECOND, maxMs: 15 * MINUTE },
     // slow on purpose: many failed logins could lock the account at Cognito
     credentials: { initialMs: 30 * MINUTE, maxMs: 30 * MINUTE },
@@ -51,6 +54,9 @@ export const BACKOFF: Readonly<Record<FailureKind, Backoff>> = Object.freeze({
 
 /** Delay of a refresh requested after a command or a WebSocket event */
 export const DEFAULT_REFRESH_DELAY_MS = 2000;
+
+/** Maximum random delay of the first poll, so instances do not all log in at once after a power cut */
+export const START_JITTER_MS = 30_000;
 
 /** Dependencies and settings of the connection manager */
 export interface ConnectionManagerOptions {
@@ -68,6 +74,10 @@ export interface ConnectionManagerOptions {
     onConnectionChange: (connected: boolean) => void | Promise<void>;
     /** Failed polls tolerated before the connection counts as lost (default 2) */
     failureTolerance?: number;
+    /** Maximum random delay of the first poll (default START_JITTER_MS) */
+    startJitterMs?: number;
+    /** Random number in [0, 1) for the start jitter (tests) */
+    random?: () => number;
 }
 
 /**
@@ -87,6 +97,9 @@ export function classifyFailure(error: unknown): FailureKind {
     }
     if (error instanceof ServiceUnavailableError) {
         return 'service';
+    }
+    if (error instanceof RateLimitedError) {
+        return 'rateLimit';
     }
     return 'api';
 }
@@ -127,13 +140,15 @@ export class ConnectionManager {
         return this.connected === true;
     }
 
-    /** Starts polling immediately */
+    /** Starts polling after a short random delay (start jitter) */
     public start(): void {
         if (this.started || this.stopped) {
             return;
         }
         this.started = true;
-        this.schedule(0);
+        const jitterMs = this.options.startJitterMs ?? START_JITTER_MS;
+        const random = this.options.random ?? Math.random;
+        this.schedule(Math.floor(random() * jitterMs));
     }
 
     /** Stops polling; a running request is left to the transport abort */
@@ -235,6 +250,8 @@ export class ConnectionManager {
         const kindChanged = kind !== this.lastFailureKind;
         this.lastFailureKind = kind;
         this.failures++;
+        // the server's Retry-After is a lower bound for every delay below
+        const retryAfterMs = error instanceof RateLimitedError ? (error.retryAfterMs ?? 0) : 0;
 
         if (kind === 'credentials') {
             const delay = BACKOFF.credentials.initialMs;
@@ -251,14 +268,15 @@ export class ConnectionManager {
 
         // short glitches while connected are tolerated without changing the state
         if (this.connected === true && this.failures <= this.tolerance) {
+            const delay = Math.max(pollIntervalMs, retryAfterMs);
             log.debug(
-                `Update from MELCloud Home failed (${reason}) - attempt ${this.failures}/${this.tolerance + 1}, retrying in ${formatDuration(pollIntervalMs)}`,
+                `Update from MELCloud Home failed (${reason}) - attempt ${this.failures}/${this.tolerance + 1}, retrying in ${formatDuration(delay)}`,
             );
-            return pollIntervalMs;
+            return delay;
         }
 
         const backoff = BACKOFF[kind];
-        const delay = Math.min(backoff.initialMs * 2 ** this.offlineAttempts, backoff.maxMs);
+        const delay = Math.max(Math.min(backoff.initialMs * 2 ** this.offlineAttempts, backoff.maxMs), retryAfterMs);
         this.offlineAttempts++;
         if (this.connected !== false || kindChanged) {
             const prefix =

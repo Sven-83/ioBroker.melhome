@@ -21,6 +21,7 @@ __export(connection_exports, {
   BACKOFF: () => BACKOFF,
   ConnectionManager: () => ConnectionManager,
   DEFAULT_REFRESH_DELAY_MS: () => DEFAULT_REFRESH_DELAY_MS,
+  START_JITTER_MS: () => START_JITTER_MS,
   classifyFailure: () => classifyFailure,
   formatDuration: () => formatDuration
 });
@@ -31,12 +32,15 @@ const MINUTE = 60 * SECOND;
 const BACKOFF = Object.freeze({
   network: { initialMs: 30 * SECOND, maxMs: 5 * MINUTE },
   service: { initialMs: 120 * SECOND, maxMs: 15 * MINUTE },
+  // HTTP 429: at least as long as Retry-After demands
+  rateLimit: { initialMs: 120 * SECOND, maxMs: 30 * MINUTE },
   login: { initialMs: 60 * SECOND, maxMs: 15 * MINUTE },
   // slow on purpose: many failed logins could lock the account at Cognito
   credentials: { initialMs: 30 * MINUTE, maxMs: 30 * MINUTE },
   api: { initialMs: 120 * SECOND, maxMs: 15 * MINUTE }
 });
 const DEFAULT_REFRESH_DELAY_MS = 2e3;
+const START_JITTER_MS = 3e4;
 function classifyFailure(error) {
   if (error instanceof import_errors.CredentialsRejectedError) {
     return "credentials";
@@ -49,6 +53,9 @@ function classifyFailure(error) {
   }
   if (error instanceof import_errors.ServiceUnavailableError) {
     return "service";
+  }
+  if (error instanceof import_errors.RateLimitedError) {
+    return "rateLimit";
   }
   return "api";
 }
@@ -77,13 +84,16 @@ class ConnectionManager {
   get isConnected() {
     return this.connected === true;
   }
-  /** Starts polling immediately */
+  /** Starts polling after a short random delay (start jitter) */
   start() {
+    var _a, _b;
     if (this.started || this.stopped) {
       return;
     }
     this.started = true;
-    this.schedule(0);
+    const jitterMs = (_a = this.options.startJitterMs) != null ? _a : START_JITTER_MS;
+    const random = (_b = this.options.random) != null ? _b : Math.random;
+    this.schedule(Math.floor(random() * jitterMs));
   }
   /** Stops polling; a running request is left to the transport abort */
   stop() {
@@ -169,12 +179,14 @@ class ConnectionManager {
    * @param error - Error of the failed poll
    */
   async handleFailure(error) {
+    var _a;
     const { log, pollIntervalMs } = this.options;
     const kind = classifyFailure(error);
     const reason = (0, import_errors.describeError)(error);
     const kindChanged = kind !== this.lastFailureKind;
     this.lastFailureKind = kind;
     this.failures++;
+    const retryAfterMs = error instanceof import_errors.RateLimitedError ? (_a = error.retryAfterMs) != null ? _a : 0 : 0;
     if (kind === "credentials") {
       const delay2 = BACKOFF.credentials.initialMs;
       if (kindChanged) {
@@ -188,13 +200,14 @@ class ConnectionManager {
       return delay2;
     }
     if (this.connected === true && this.failures <= this.tolerance) {
+      const delay2 = Math.max(pollIntervalMs, retryAfterMs);
       log.debug(
-        `Update from MELCloud Home failed (${reason}) - attempt ${this.failures}/${this.tolerance + 1}, retrying in ${formatDuration(pollIntervalMs)}`
+        `Update from MELCloud Home failed (${reason}) - attempt ${this.failures}/${this.tolerance + 1}, retrying in ${formatDuration(delay2)}`
       );
-      return pollIntervalMs;
+      return delay2;
     }
     const backoff = BACKOFF[kind];
-    const delay = Math.min(backoff.initialMs * 2 ** this.offlineAttempts, backoff.maxMs);
+    const delay = Math.max(Math.min(backoff.initialMs * 2 ** this.offlineAttempts, backoff.maxMs), retryAfterMs);
     this.offlineAttempts++;
     if (this.connected !== false || kindChanged) {
       const prefix = this.connected === true ? "Connection to MELCloud Home lost" : "Cannot connect to MELCloud Home";
@@ -222,6 +235,7 @@ class ConnectionManager {
   BACKOFF,
   ConnectionManager,
   DEFAULT_REFRESH_DELAY_MS,
+  START_JITTER_MS,
   classifyFailure,
   formatDuration
 });

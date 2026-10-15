@@ -75,7 +75,7 @@ export const RECONNECT_MAX_MS = 300 * SECOND;
 export const STABLE_SESSION_MS = 60 * SECOND;
 /** Delay before reconnecting after a stable session (normal 2 h server limit) */
 export const QUICK_RECONNECT_MS = 1 * SECOND;
-const HANDSHAKE_TIMEOUT_MS = 30 * SECOND;
+const HANDSHAKE_TIMEOUT_MS = 15 * SECOND;
 const JITTER = 0.2;
 
 /** Unit message types that trigger a refresh */

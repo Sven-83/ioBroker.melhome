@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { AbortedError, NetworkError, describeError, redact, stripLineBreaks } from './errors';
 import { ManualScheduler } from '../../../test/helpers/fake-cloud';
-import { HttpTransport, type FetchFn } from './http';
+import { HttpTransport, MAX_RETRY_AFTER_MS, parseRetryAfter, type FetchFn } from './http';
 
 describe('api/errors', () => {
     it('redacts codes, tokens, hashes, passwords and e-mail addresses', () => {
@@ -32,6 +32,17 @@ describe('api/errors', () => {
 
 describe('api/http', () => {
     const ok: FetchFn = () => Promise.resolve(new Response('ok'));
+
+    it('parses Retry-After as seconds or HTTP date, capped at one hour', () => {
+        const now = Date.UTC(2026, 9, 15, 12, 0, 0);
+        expect(parseRetryAfter('120', now)).to.equal(120_000);
+        expect(parseRetryAfter(' 0 ', now)).to.equal(0);
+        expect(parseRetryAfter('Thu, 15 Oct 2026 12:05:00 GMT', now)).to.equal(300_000);
+        expect(parseRetryAfter('Thu, 15 Oct 2026 11:00:00 GMT', now)).to.equal(0);
+        expect(parseRetryAfter('999999', now)).to.equal(MAX_RETRY_AFTER_MS);
+        expect(parseRetryAfter('soon', now)).to.equal(undefined);
+        expect(parseRetryAfter(null, now)).to.equal(undefined);
+    });
 
     it('serialises requests and keeps the minimum interval', async () => {
         let clock = 1000;

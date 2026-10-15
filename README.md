@@ -75,6 +75,10 @@ MELCloud and Mitsubishi Electric are trademarks of their respective owners. Use 
 * (Sven-83) dashboard: off timer sends the minutes shown on the wheel, mode conflict hint for multi-split systems
 * (Sven-83) vane auto is repeated like swing when the unit did not apply it
 * (Sven-83) dashboard: no vane auto buttons (the units do not apply vane auto reliably)
+* (Sven-83) adapter renamed to `melhome` (object IDs `melhome.<n>`, dashboard at `/melhome/index.html`)
+* (Sven-83) rate limits: HTTP 429 is honoured including Retry-After, random start delay, 15 s timeouts
+* (Sven-83) instance settings check the e-mail address and require the password
+* (Sven-83) Node.js 22 or newer required
 
 ## License
 MIT License

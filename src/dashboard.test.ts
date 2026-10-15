@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import type * as Core from '../www/js/core.js';
 
 // plain browser script with a CommonJS fallback
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- the dashboard core is a plain browser script, loaded via require
 const core = require('../www/js/core.js') as typeof Core;
 
 describe('dashboard core', () => {

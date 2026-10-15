@@ -64,7 +64,7 @@
         "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.melhome/main/admin/melhome.png",
         "readme": "https://github.com/Sven-83/ioBroker.melhome/blob/main/README.md",
         "loglevel": "info",
-        "tier": 3,
+        "tier": 2,
         "mode": "daemon",
         "type": "climate-control",
         "compact": true,

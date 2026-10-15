@@ -3,6 +3,7 @@
  *
  * - bearer token from the TokenManager, 401 cascade: refresh -> full login -> error
  * - GET requests are retried once after a short delay on network errors and HTTP 5xx
+ * - HTTP 429 is never retried here: RateLimitedError carries Retry-After to the connection manager
  * - control requests (PUT) are never retried here - the command queue decides
  * - responses often come as text/plain, so the body is always parsed manually
  */
@@ -17,8 +18,15 @@ import {
     USER_AGENT,
     type Endpoints,
 } from './constants';
-import { AbortedError, ApiError, NetworkError, ServiceUnavailableError, TokenRejectedError } from './errors';
-import type { HttpTransport, Logger } from './http';
+import {
+    AbortedError,
+    ApiError,
+    NetworkError,
+    RateLimitedError,
+    ServiceUnavailableError,
+    TokenRejectedError,
+} from './errors';
+import { parseRetryAfter, type HttpTransport, type Logger } from './http';
 import {
     buildAtaControlBody,
     parseHourlyEnergy,
@@ -266,6 +274,9 @@ export class MelCloudHomeClient {
                 }
                 if (response.status === 304) {
                     return null;
+                }
+                if (response.status === 429) {
+                    throw new RateLimitedError(parseRetryAfter(response.headers.get('retry-after'), this.now()));
                 }
                 if (response.status >= 500) {
                     throw new ServiceUnavailableError(response.status);

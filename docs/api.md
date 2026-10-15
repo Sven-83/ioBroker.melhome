@@ -391,9 +391,11 @@ Kein offizielles Limit dokumentiert; in der Referenz wurde **nie ein HTTP 429 be
 | Befehls-Bündelung | 10 ms Coalescing | Debounce ~800 ms je Gerät, ein PUT |
 | Energie | 30 min | **min. 30 min** |
 | RSSI / Außentemperatur | 30 min | 30 min |
-| HTTP-Timeout | 30 s | 30 s |
+| HTTP-Timeout | 30 s | 15 s (Audit M8; WS-Handshake ebenfalls 15 s) |
 | 5xx-Backoff | 120 s · 2ⁿ, max 900 s | übernehmen |
 | WS-Reconnect | 5 → 300 s, ±20 % Jitter | übernehmen |
+| HTTP 429 | nicht behandelt | eigene Fehlerart, Backoff 120 s → 30 min, nie kürzer als `Retry-After` (max. 1 h); kein Sofort-Retry (Audit M1) |
+| Start | sofort | Zufallsversatz 0–30 s vor dem ersten Poll (Audit M2) |
 
 ---
 

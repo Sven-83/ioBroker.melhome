@@ -24,6 +24,7 @@ __export(errors_exports, {
   LoginFlowError: () => LoginFlowError,
   MelCloudHomeError: () => MelCloudHomeError,
   NetworkError: () => NetworkError,
+  RateLimitedError: () => RateLimitedError,
   ServiceUnavailableError: () => ServiceUnavailableError,
   TokenRejectedError: () => TokenRejectedError,
   describeError: () => describeError,
@@ -46,6 +47,17 @@ class ServiceUnavailableError extends MelCloudHomeError {
   constructor(status) {
     super(`MELCloud Home service unavailable (HTTP ${status})`);
     this.status = status;
+  }
+}
+class RateLimitedError extends MelCloudHomeError {
+  /** Wait time requested by the server (Retry-After), if any */
+  retryAfterMs;
+  /** @param retryAfterMs - Wait time from the Retry-After header */
+  constructor(retryAfterMs) {
+    super(
+      `MELCloud Home rate limit reached (HTTP 429)${retryAfterMs !== void 0 ? ` - retry after ${Math.ceil(retryAfterMs / 1e3)} s` : ""}`
+    );
+    this.retryAfterMs = retryAfterMs;
   }
 }
 class CredentialsRejectedError extends MelCloudHomeError {
@@ -104,6 +116,7 @@ function describeError(error) {
   LoginFlowError,
   MelCloudHomeError,
   NetworkError,
+  RateLimitedError,
   ServiceUnavailableError,
   TokenRejectedError,
   describeError,

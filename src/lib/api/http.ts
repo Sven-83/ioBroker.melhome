@@ -22,6 +22,25 @@ export interface Logger {
     error(message: string): void;
 }
 
+/** Upper bound for a server-requested wait (protects against absurd Retry-After values) */
+export const MAX_RETRY_AFTER_MS = 3_600_000;
+
+/**
+ * Parses a Retry-After header (delay in seconds or HTTP date).
+ *
+ * @param header - Header value
+ * @param now - Current time (epoch ms)
+ * @returns Wait time in ms (capped at one hour), undefined if missing or invalid
+ */
+export function parseRetryAfter(header: string | null, now: number): number | undefined {
+    const value = header?.trim();
+    if (!value) {
+        return undefined;
+    }
+    const ms = /^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - now;
+    return Number.isFinite(ms) ? Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS) : undefined;
+}
+
 /** Timer functions - the adapter passes its own so onUnload clears everything */
 export interface Scheduler {
     /** Schedules a callback, returns undefined if the adapter refuses (unloading) */

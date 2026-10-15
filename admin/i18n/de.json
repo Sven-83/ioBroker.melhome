@@ -18,5 +18,7 @@
     "Desk (office)": "Schreibtisch (Büro)",
     "Table (dining room)": "Tisch (Esszimmer)",
     "Teddy bear (nursery)": "Teddy (Kinderzimmer)",
-    "Indoor unit": "Innengerät"
+    "Indoor unit": "Innengerät",
+    "Please enter a valid e-mail address": "Bitte eine gültige E-Mail-Adresse eingeben",
+    "Please enter the password": "Bitte das Passwort eingeben"
 }

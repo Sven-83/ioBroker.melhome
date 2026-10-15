@@ -6,13 +6,21 @@ import { expect } from 'chai';
 import { CaptureLog, EMAIL, FakeCloud, ManualScheduler, PASSWORD, settle } from '../../../test/helpers/fake-cloud';
 import { AuthClient, TokenManager } from './auth';
 import { MelCloudHomeClient } from './client';
-import { BACKOFF, ConnectionManager, classifyFailure, formatDuration, type ContextSource } from './connection';
+import {
+    BACKOFF,
+    ConnectionManager,
+    START_JITTER_MS,
+    classifyFailure,
+    formatDuration,
+    type ContextSource,
+} from './connection';
 import {
     AbortedError,
     ApiError,
     CredentialsRejectedError,
     LoginFlowError,
     NetworkError,
+    RateLimitedError,
     ServiceUnavailableError,
     TokenRejectedError,
 } from './errors';
@@ -52,6 +60,7 @@ function setup(source: ContextSource = new ScriptedSource()): {
         scheduler,
         log,
         pollIntervalMs: POLL,
+        startJitterMs: 0,
         onConnectionChange: connected => {
             states.push(connected);
         },
@@ -81,6 +90,7 @@ describe('api/connection', () => {
     it('classifies failures', () => {
         expect(classifyFailure(new NetworkError('x'))).to.equal('network');
         expect(classifyFailure(new ServiceUnavailableError(503))).to.equal('service');
+        expect(classifyFailure(new RateLimitedError(1000))).to.equal('rateLimit');
         expect(classifyFailure(new CredentialsRejectedError())).to.equal('credentials');
         expect(classifyFailure(new LoginFlowError('x'))).to.equal('login');
         expect(classifyFailure(new TokenRejectedError('x'))).to.equal('login');
@@ -88,6 +98,38 @@ describe('api/connection', () => {
         expect(classifyFailure(new Error('x'))).to.equal('api');
         expect(formatDuration(30_000)).to.equal('30 s');
         expect(formatDuration(15 * MIN)).to.equal('15 min');
+    });
+
+    it('delays the first poll by a random start jitter', () => {
+        const scheduler = new ManualScheduler();
+        const manager = new ConnectionManager({
+            source: new ScriptedSource(),
+            scheduler,
+            log: new CaptureLog(),
+            pollIntervalMs: POLL,
+            random: () => 0.5,
+            onConnectionChange: () => undefined,
+            onContext: () => undefined,
+        });
+        manager.start();
+        expect(scheduler.nextDelay).to.equal(START_JITTER_MS / 2);
+    });
+
+    it('waits at least as long as Retry-After demands (HTTP 429)', async () => {
+        const source = new ScriptedSource();
+        const { manager, scheduler } = setup(source);
+        manager.start();
+        await scheduler.runNext();
+        // while connected: the tolerated failure waits for Retry-After instead of the poll interval
+        source.results.push(new RateLimitedError(5 * MIN));
+        expect(await cycles(scheduler, 1)).to.deep.equal([5 * MIN]);
+        // a short Retry-After never shortens the poll interval
+        source.results.push(new RateLimitedError(1000));
+        expect(await cycles(scheduler, 1)).to.deep.equal([POLL]);
+        // offline: backoff of the rate limit kind, but never below Retry-After
+        source.results.push(new RateLimitedError(), new RateLimitedError(20 * MIN));
+        expect(await cycles(scheduler, 2)).to.deep.equal([BACKOFF.rateLimit.initialMs, 20 * MIN]);
+        expect(manager.isConnected).to.equal(false);
     });
 
     it('connects and polls at the configured interval', async () => {
@@ -299,6 +341,7 @@ describe('api/connection', () => {
                 scheduler,
                 log,
                 pollIntervalMs: POLL,
+                startJitterMs: 0,
                 onConnectionChange: () => undefined,
                 onContext: () => undefined,
             });

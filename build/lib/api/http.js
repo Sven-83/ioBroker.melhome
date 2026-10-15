@@ -19,11 +19,22 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var http_exports = {};
 __export(http_exports, {
   HttpTransport: () => HttpTransport,
+  MAX_RETRY_AFTER_MS: () => MAX_RETRY_AFTER_MS,
+  parseRetryAfter: () => parseRetryAfter,
   systemScheduler: () => systemScheduler
 });
 module.exports = __toCommonJS(http_exports);
 var import_constants = require("./constants");
 var import_errors = require("./errors");
+const MAX_RETRY_AFTER_MS = 36e5;
+function parseRetryAfter(header, now) {
+  const value = header == null ? void 0 : header.trim();
+  if (!value) {
+    return void 0;
+  }
+  const ms = /^\d+$/.test(value) ? Number(value) * 1e3 : Date.parse(value) - now;
+  return Number.isFinite(ms) ? Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS) : void 0;
+}
 const systemScheduler = {
   setTimeout: (callback, ms) => globalThis.setTimeout(callback, ms),
   clearTimeout: (handle) => globalThis.clearTimeout(handle)
@@ -145,6 +156,8 @@ function describeNetworkError(error) {
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   HttpTransport,
+  MAX_RETRY_AFTER_MS,
+  parseRetryAfter,
   systemScheduler
 });
 //# sourceMappingURL=http.js.map

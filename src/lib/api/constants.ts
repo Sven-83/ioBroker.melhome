@@ -22,6 +22,11 @@ export const DEFAULT_ENDPOINTS: Readonly<Endpoints> = Object.freeze({
     ws: 'wss://ws.melcloudhome.com',
 });
 
+/*
+ * The user agents imitate the official app. Keep them in sync with the current MELCloud Home
+ * app version - the cloud may reject outdated versions. Last checked: 2026-10.
+ */
+
 /** User agent of the official mobile app */
 export const USER_AGENT = 'MonitorAndControl.App.Mobile/52 CFNetwork/3860.400.51 Darwin/25.3.0';
 
@@ -43,8 +48,11 @@ export const DEFAULT_TOKEN_LIFETIME_S = 3600;
 
 /** Minimum spacing between two requests to the cloud (all hosts) */
 export const MIN_REQUEST_INTERVAL_MS = 500;
-/** HTTP timeout per request */
-export const HTTP_TIMEOUT_MS = 30_000;
+/**
+ * HTTP timeout per request. Above the usual 5-10 s on purpose: one slow hop of the Cognito
+ * login must not fail the whole login, and the serialised queue is blocked at most this long.
+ */
+export const HTTP_TIMEOUT_MS = 15_000;
 /** Maximum redirect hops during login */
 export const MAX_REDIRECTS = 10;
 

@@ -28,6 +28,20 @@ export class ServiceUnavailableError extends MelCloudHomeError {
     }
 }
 
+/** The cloud answered with HTTP 429 (too many requests) */
+export class RateLimitedError extends MelCloudHomeError {
+    /** Wait time requested by the server (Retry-After), if any */
+    public readonly retryAfterMs: number | undefined;
+
+    /** @param retryAfterMs - Wait time from the Retry-After header */
+    public constructor(retryAfterMs?: number) {
+        super(
+            `MELCloud Home rate limit reached (HTTP 429)${retryAfterMs !== undefined ? ` - retry after ${Math.ceil(retryAfterMs / 1000)} s` : ''}`,
+        );
+        this.retryAfterMs = retryAfterMs;
+    }
+}
+
 /** MELCloud Home rejected e-mail or password */
 export class CredentialsRejectedError extends MelCloudHomeError {
     /** Fixed message */

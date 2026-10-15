@@ -10,6 +10,9 @@
         "email": {
             "type": "text",
             "label": "E-mail",
+            "validator": "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test((data.email || '').trim())",
+            "validatorErrorText": "Please enter a valid e-mail address",
+            "validatorNoSaveOnError": true,
             "newLine": true,
             "xs": 12,
             "sm": 12,
@@ -20,6 +23,9 @@
         "password": {
             "type": "password",
             "label": "Password",
+            "validator": "!!data.password",
+            "validatorErrorText": "Please enter the password",
+            "validatorNoSaveOnError": true,
             "newLine": true,
             "xs": 12,
             "sm": 12,

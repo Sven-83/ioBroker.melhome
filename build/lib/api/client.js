@@ -25,6 +25,7 @@ __export(client_exports, {
 module.exports = __toCommonJS(client_exports);
 var import_constants = require("./constants");
 var import_errors = require("./errors");
+var import_http = require("./http");
 var import_types = require("./types");
 const MAX_REMEMBERED_WARNINGS = 200;
 const pad = (n) => String(n).padStart(2, "0");
@@ -195,6 +196,9 @@ class MelCloudHomeClient {
         }
         if (response.status === 304) {
           return null;
+        }
+        if (response.status === 429) {
+          throw new import_errors.RateLimitedError((0, import_http.parseRetryAfter)(response.headers.get("retry-after"), this.now()));
         }
         if (response.status >= 500) {
           throw new import_errors.ServiceUnavailableError(response.status);

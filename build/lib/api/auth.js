@@ -30,6 +30,7 @@ var import_node_crypto = require("node:crypto");
 var import_tough_cookie = require("tough-cookie");
 var import_constants = require("./constants");
 var import_errors = require("./errors");
+var import_http = require("./http");
 const REDIRECT_STATUS = /* @__PURE__ */ new Set([301, 302, 303, 307, 308]);
 function generatePkce() {
   const verifier = (0, import_node_crypto.randomBytes)(32).toString("base64url");
@@ -290,6 +291,9 @@ class AuthClient {
     return { accessToken, refreshToken, expiresAt: this.now() + expiresIn * 1e3 };
   }
   throwOnServerError(result) {
+    if (result.status === 429) {
+      throw new import_errors.RateLimitedError((0, import_http.parseRetryAfter)(result.headers.get("retry-after"), this.now()));
+    }
     if (result.status >= 500) {
       throw new import_errors.ServiceUnavailableError(result.status);
     }

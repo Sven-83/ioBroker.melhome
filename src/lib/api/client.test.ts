@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { CaptureLog, EMAIL, FakeCloud, PASSWORD } from '../../../test/helpers/fake-cloud';
 import { AuthClient, TokenManager } from './auth';
 import { MelCloudHomeClient, formatReportTime, formatTelemetryTime } from './client';
-import { ApiError, NetworkError, ServiceUnavailableError, TokenRejectedError } from './errors';
+import { ApiError, NetworkError, RateLimitedError, ServiceUnavailableError, TokenRejectedError } from './errors';
 import { HttpTransport } from './http';
 
 const UNIT = '00000000-0000-4000-8000-000000000001';
@@ -82,6 +82,24 @@ describe('api/client', () => {
                 cloud.faults.push({ match: /\/context$/, response: 401 });
             }
             await expect(client.getContext()).to.be.rejectedWith(TokenRejectedError);
+        });
+
+        it('does not retry HTTP 429 and passes Retry-After on', async () => {
+            const { cloud, client, sleeps } = setup();
+            cloud.faults.push({ match: /\/context$/, response: 429, headers: { 'Retry-After': '120' } });
+            const error = await client.getContext().catch((e: unknown) => e);
+            expect(error).to.be.instanceOf(RateLimitedError);
+            expect((error as RateLimitedError).retryAfterMs).to.equal(120_000);
+            expect(sleeps).to.deep.equal([]);
+            expect(cloud.count('/context')).to.equal(1);
+        });
+
+        it('reports HTTP 429 during login as rate limit', async () => {
+            const { cloud, client } = setup();
+            cloud.faults.push({ match: /\/connect\/par$/, response: 429 });
+            const error = await client.getContext().catch((e: unknown) => e);
+            expect(error).to.be.instanceOf(RateLimitedError);
+            expect((error as RateLimitedError).retryAfterMs).to.equal(undefined);
         });
 
         it('retries a GET once after HTTP 5xx', async () => {

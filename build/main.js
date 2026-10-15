@@ -80,7 +80,7 @@ class Melhome extends utils.Adapter {
     this.http = http;
     const tokens = new import_auth.TokenManager(new import_auth.AuthClient(http), { email, password }, this.log);
     const client = new import_client.MelCloudHomeClient({ http, tokens, log: this.log });
-    await this.extendObjectAsync("devices", {
+    await this.extendObject("devices", {
       type: "folder",
       common: { name: { en: "Devices", de: "Ger\xE4te" } },
       native: {}
@@ -146,11 +146,11 @@ class Melhome extends utils.Adapter {
     return {
       namespace: this.namespace,
       extendObject: async (id, obj) => {
-        await this.extendObjectAsync(id, obj);
+        await this.extendObject(id, obj);
       },
       getObject: (id) => this.getObjectAsync(id),
       setState: async (id, val, ack) => {
-        await this.setStateAsync(id, val, ack);
+        await this.setState(id, val, ack);
       },
       getState: (id) => this.getStateAsync(id),
       getStates: async (pattern) => {

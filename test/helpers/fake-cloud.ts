@@ -43,6 +43,8 @@ export interface Fault {
     match: RegExp;
     /** HTTP status to answer, or a network error */
     response: number | 'network';
+    /** Response headers, e.g. Retry-After */
+    headers?: Record<string, string>;
 }
 
 /**
@@ -93,7 +95,12 @@ export class FakeCloud {
                 return Promise.reject(new TypeError('fetch failed', { cause: { code: 'ECONNRESET' } }));
             }
             const nullBody = fault.response === 204 || fault.response === 304;
-            return Promise.resolve(new Response(nullBody ? null : '{"error":"injected"}', { status: fault.response }));
+            return Promise.resolve(
+                new Response(nullBody ? null : '{"error":"injected"}', {
+                    status: fault.response,
+                    headers: fault.headers,
+                }),
+            );
         }
         return Promise.resolve(this.route(method, new URL(input), headers, body));
     };

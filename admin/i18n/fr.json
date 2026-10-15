@@ -18,5 +18,7 @@
     "Desk (office)": "Desk (office)",
     "Table (dining room)": "Table (dining room)",
     "Teddy bear (nursery)": "Teddy bear (nursery)",
-    "Indoor unit": "Indoor unit"
+    "Indoor unit": "Indoor unit",
+    "Please enter a valid e-mail address": "Veuillez saisir une adresse e-mail valide",
+    "Please enter the password": "Veuillez saisir le mot de passe"
 }
