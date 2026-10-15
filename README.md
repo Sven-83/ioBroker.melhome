@@ -10,7 +10,7 @@
 
 > ⚠️ **Work in progress** – not ready for productive use yet.
 
-[Deutsch](#deutsch) · [English](#english)
+German documentation: [docs/de/README.md](docs/de/README.md)
 
 ---
 
@@ -47,42 +47,6 @@ The adapter ships a climate dashboard. It is served by the **web adapter** (its 
 ### Known limitations
 - **Horizontal vane swing:** After a fixed horizontal position, the cloud often ignores a new "Swing" command until the unit reports its state again (on a room temperature change or when switched off and on). This also happens with the official app. The adapter remembers the swing request for 30 minutes and sends it again automatically once the unit reports its old position (up to 3 times).
 - Until the unit reports again, the cloud shows the commanded values, not the values the unit actually applied.
-
----
-
-## Deutsch
-
-Steuerung von Mitsubishi-Electric-Klimageräten über **MELCloud Home** – die neue Cloud-Plattform von Mitsubishi.
-Der Adapter funktioniert **nicht** mit der klassischen MELCloud (dafür gibt es [ioBroker.melcloud](https://github.com/Black-Thunder/ioBroker.melcloud)).
-
-### Geplanter Umfang (v1)
-- Luft-Luft-Geräte (Klimageräte): Ein/Aus, Modus, Solltemperatur, Raum-/Außentemperatur, Lüfterstufe, Lamellen, Online- und Fehlerstatus, Energie (falls verfügbar), Abschalt-Timer
-- Echtzeit-Aktualisierung per WebSocket mit automatischem Rückfall auf Abfrage (Polling)
-- Mitgeliefertes Dashboard für VIS-2 / Browser
-
-### Konfiguration
-| Einstellung | Beschreibung |
-|---|---|
-| E-Mail / Passwort | Zugangsdaten für MELCloud Home. Das Passwort wird verschlüsselt gespeichert. |
-| Echtzeit-Aktualisierung | WebSocket-Push-Verbindung nutzen. Polling bleibt als Rückfallebene aktiv. |
-| Abfrageintervall | REST-Abfrage in Sekunden (mindestens 60, um die Cloud-Limits einzuhalten). |
-
-Der State `info.realtime` zeigt, ob die WebSocket-Verbindung offen ist. `info.connection` hängt nur an der REST-Verbindung.
-
-### Dashboard
-Der Adapter bringt ein Klima-Dashboard mit. Es wird vom **web-Adapter** ausgeliefert (dessen Socket-Schnittstelle muss aktiv sein, das ist die Standardeinstellung):
-
-`http://<iobroker>:8082/melcloudhome/index.html` (für eine zweite Adapter-Instanz `?instance=1` anhängen)
-
-- Zeigt alle Geräte automatisch, aktualisiert live, funktioniert auf Handy und Tablet.
-- Für VIS-2: ein *iframe*-Widget mit dieser URL anlegen.
-- Raumsymbole: Instanz-Einstellungen → *Dashboard* → *Raumsymbole*.
-- Die Sprache folgt der ioBroker-Systemsprache (Deutsch oder Englisch).
-- Keine externen Aufrufe: Die Schriften sind enthalten (Fraunces, Work Sans – SIL Open Font License 1.1).
-
-### Bekannte Einschränkungen
-- **Seitenlamelle Swing:** Nach einer festen Seitenposition ignoriert die Cloud einen neuen „Swing“-Befehl oft, bis sich das Gerät wieder meldet (bei einer Änderung der Raumtemperatur oder nach Aus/Ein). Das passiert auch in der offiziellen App. Der Adapter merkt sich den Swing-Wunsch 30 Minuten und sendet ihn automatisch erneut, sobald das Gerät seine alte Position meldet (bis zu 3-mal).
-- Bis sich das Gerät wieder meldet, zeigt die Cloud die befohlenen Werte, nicht die tatsächlich übernommenen.
 
 ---
 

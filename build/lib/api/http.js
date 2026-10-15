@@ -18,13 +18,19 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var http_exports = {};
 __export(http_exports, {
-  HttpTransport: () => HttpTransport
+  HttpTransport: () => HttpTransport,
+  systemScheduler: () => systemScheduler
 });
 module.exports = __toCommonJS(http_exports);
 var import_constants = require("./constants");
 var import_errors = require("./errors");
+const systemScheduler = {
+  setTimeout: (callback, ms) => globalThis.setTimeout(callback, ms),
+  clearTimeout: (handle) => globalThis.clearTimeout(handle)
+};
 class HttpTransport {
   fetchFn;
+  scheduler;
   minIntervalMs;
   timeoutMs;
   now;
@@ -34,12 +40,13 @@ class HttpTransport {
   lastRequestAt = 0;
   /** @param options - Settings, mainly for tests */
   constructor(options = {}) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     this.fetchFn = (_a = options.fetch) != null ? _a : ((input, init) => fetch(input, init));
-    this.minIntervalMs = (_b = options.minIntervalMs) != null ? _b : import_constants.MIN_REQUEST_INTERVAL_MS;
-    this.timeoutMs = (_c = options.timeoutMs) != null ? _c : import_constants.HTTP_TIMEOUT_MS;
-    this.now = (_d = options.now) != null ? _d : Date.now;
-    this.sleep = (_e = options.sleep) != null ? _e : ((ms) => this.abortableSleep(ms));
+    this.scheduler = (_b = options.scheduler) != null ? _b : systemScheduler;
+    this.minIntervalMs = (_c = options.minIntervalMs) != null ? _c : import_constants.MIN_REQUEST_INTERVAL_MS;
+    this.timeoutMs = (_d = options.timeoutMs) != null ? _d : import_constants.HTTP_TIMEOUT_MS;
+    this.now = (_e = options.now) != null ? _e : Date.now;
+    this.sleep = (_f = options.sleep) != null ? _f : ((ms) => this.abortableSleep(ms));
   }
   /**
    * Waits, but returns early when the transport is aborted (no timer survives unload).
@@ -54,11 +61,15 @@ class HttpTransport {
       }
       let timer = void 0;
       const done = () => {
-        clearTimeout(timer);
+        this.scheduler.clearTimeout(timer);
         this.shutdown.signal.removeEventListener("abort", done);
         resolve();
       };
-      timer = setTimeout(done, ms);
+      timer = this.scheduler.setTimeout(done, ms);
+      if (timer === void 0) {
+        resolve();
+        return;
+      }
       this.shutdown.signal.addEventListener("abort", done);
     });
   }
@@ -89,9 +100,9 @@ class HttpTransport {
     if (this.aborted) {
       throw new import_errors.AbortedError();
     }
-    const wait = this.lastRequestAt + this.minIntervalMs - this.now();
-    if (wait > 0) {
-      await this.sleep(wait);
+    const spacingMs = this.lastRequestAt + this.minIntervalMs - this.now();
+    if (spacingMs > 0) {
+      await this.sleep(spacingMs);
       if (this.aborted) {
         throw new import_errors.AbortedError();
       }
@@ -101,7 +112,7 @@ class HttpTransport {
     const onShutdown = () => controller.abort();
     this.shutdown.signal.addEventListener("abort", onShutdown);
     let timedOut = false;
-    const timer = setTimeout(() => {
+    const timer = this.scheduler.setTimeout(() => {
       timedOut = true;
       controller.abort();
     }, this.timeoutMs);
@@ -118,7 +129,7 @@ class HttpTransport {
       }
       throw new import_errors.NetworkError(`Network error: ${describeNetworkError(error)}`);
     } finally {
-      clearTimeout(timer);
+      this.scheduler.clearTimeout(timer);
       this.shutdown.signal.removeEventListener("abort", onShutdown);
     }
   }
@@ -133,6 +144,7 @@ function describeNetworkError(error) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  HttpTransport
+  HttpTransport,
+  systemScheduler
 });
 //# sourceMappingURL=http.js.map

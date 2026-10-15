@@ -22,8 +22,24 @@ export interface Logger {
     error(message: string): void;
 }
 
+/** Timer functions - the adapter passes its own so onUnload clears everything */
+export interface Scheduler {
+    /** Schedules a callback, returns undefined if the adapter refuses (unloading) */
+    setTimeout: (callback: () => void, ms: number) => unknown;
+    /** Cancels a scheduled callback */
+    clearTimeout: (handle: unknown) => void;
+}
+
+/** Plain Node.js timers, for the standalone tools and tests */
+export const systemScheduler: Scheduler = {
+    setTimeout: (callback, ms) => globalThis.setTimeout(callback, ms),
+    clearTimeout: handle => globalThis.clearTimeout(handle as NodeJS.Timeout | undefined),
+};
+
 /** Settings of the transport */
 export interface HttpTransportOptions {
+    /** Timer functions, defaults to the plain Node.js timers */
+    scheduler?: Scheduler;
     /** fetch implementation, defaults to the global fetch */
     fetch?: FetchFn;
     /** Minimum spacing between two requests in ms */
@@ -41,6 +57,7 @@ export interface HttpTransportOptions {
  */
 export class HttpTransport {
     private readonly fetchFn: FetchFn;
+    private readonly scheduler: Scheduler;
     private readonly minIntervalMs: number;
     private readonly timeoutMs: number;
     private readonly now: () => number;
@@ -52,6 +69,7 @@ export class HttpTransport {
     /** @param options - Settings, mainly for tests */
     public constructor(options: HttpTransportOptions = {}) {
         this.fetchFn = options.fetch ?? ((input, init) => fetch(input, init));
+        this.scheduler = options.scheduler ?? systemScheduler;
         this.minIntervalMs = options.minIntervalMs ?? MIN_REQUEST_INTERVAL_MS;
         this.timeoutMs = options.timeoutMs ?? HTTP_TIMEOUT_MS;
         this.now = options.now ?? Date.now;
@@ -69,13 +87,18 @@ export class HttpTransport {
                 resolve();
                 return;
             }
-            let timer: NodeJS.Timeout | undefined = undefined;
+            let timer: unknown = undefined;
             const done = (): void => {
-                clearTimeout(timer);
+                this.scheduler.clearTimeout(timer);
                 this.shutdown.signal.removeEventListener('abort', done);
                 resolve();
             };
-            timer = setTimeout(done, ms);
+            timer = this.scheduler.setTimeout(done, ms);
+            if (timer === undefined) {
+                // adapter is unloading and refuses new timers
+                resolve();
+                return;
+            }
             this.shutdown.signal.addEventListener('abort', done);
         });
     }
@@ -111,9 +134,9 @@ export class HttpTransport {
         if (this.aborted) {
             throw new AbortedError();
         }
-        const wait = this.lastRequestAt + this.minIntervalMs - this.now();
-        if (wait > 0) {
-            await this.sleep(wait);
+        const spacingMs = this.lastRequestAt + this.minIntervalMs - this.now();
+        if (spacingMs > 0) {
+            await this.sleep(spacingMs);
             if (this.aborted) {
                 throw new AbortedError();
             }
@@ -124,7 +147,7 @@ export class HttpTransport {
         const onShutdown = (): void => controller.abort();
         this.shutdown.signal.addEventListener('abort', onShutdown);
         let timedOut = false;
-        const timer = setTimeout(() => {
+        const timer = this.scheduler.setTimeout(() => {
             timedOut = true;
             controller.abort();
         }, this.timeoutMs);
@@ -142,7 +165,7 @@ export class HttpTransport {
             }
             throw new NetworkError(`Network error: ${describeNetworkError(error)}`);
         } finally {
-            clearTimeout(timer);
+            this.scheduler.clearTimeout(timer);
             this.shutdown.signal.removeEventListener('abort', onShutdown);
         }
     }

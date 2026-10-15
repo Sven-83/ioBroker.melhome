@@ -18,16 +18,10 @@ import {
     TokenRejectedError,
     describeError,
 } from './errors';
-import type { Logger } from './http';
+import type { Logger, Scheduler } from './http';
 import type { UserContext } from './types';
 
-/** Timer functions - the adapter passes its own so onUnload clears everything */
-export interface Scheduler {
-    /** Schedules a callback */
-    setTimeout(callback: () => void, ms: number): unknown;
-    /** Cancels a scheduled callback */
-    clearTimeout(handle: unknown): void;
-}
+export type { Scheduler } from './http';
 
 /** Something that delivers the user context */
 export interface ContextSource {

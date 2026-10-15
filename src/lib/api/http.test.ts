@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { AbortedError, NetworkError, describeError, redact, stripLineBreaks } from './errors';
+import { ManualScheduler } from '../../../test/helpers/fake-cloud';
 import { HttpTransport, type FetchFn } from './http';
 
 describe('api/errors', () => {
@@ -114,5 +115,26 @@ describe('api/http', () => {
         transport.abort();
         await sleeping;
         expect(Date.now() - started).to.be.below(1000);
+    });
+
+    it('uses the injected scheduler for sleeps and request timeouts', async () => {
+        const scheduler = new ManualScheduler();
+        const transport = new HttpTransport({ fetch: ok, scheduler, timeoutMs: 5000 });
+        const sleeping = transport.abortableSleep(1234);
+        expect(scheduler.nextDelay).to.equal(1234);
+        scheduler.pending[0].callback();
+        await sleeping;
+        expect(scheduler.pending).to.have.length(0);
+        await transport.request('https://a');
+        // the timeout timer was scheduled and cleared again after the response
+        expect(scheduler.pending).to.have.length(0);
+    });
+
+    it('does not hang when the scheduler refuses new timers (adapter unloading)', async () => {
+        const transport = new HttpTransport({
+            fetch: ok,
+            scheduler: { setTimeout: () => undefined, clearTimeout: () => undefined },
+        });
+        await transport.abortableSleep(60_000);
     });
 });

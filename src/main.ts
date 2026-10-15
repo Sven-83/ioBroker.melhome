@@ -67,7 +67,7 @@ class Melcloudhome extends utils.Adapter {
             setTimeout: (callback, ms) => this.setTimeout(callback, ms),
             clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
         };
-        const http = new HttpTransport();
+        const http = new HttpTransport({ scheduler });
         this.http = http;
         const tokens = new TokenManager(new AuthClient(http), { email, password }, this.log);
         const client = new MelCloudHomeClient({ http, tokens, log: this.log });
