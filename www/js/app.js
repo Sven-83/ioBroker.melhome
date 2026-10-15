@@ -289,9 +289,7 @@
             dot.setAttribute('role', 'button');
             dot.tabIndex = 0;
             dot.title = code === 0 ? C.t(lang, 'auto') : String(code);
-            if (code === 0) {
-                dot.textContent = 'A';
-            }
+            dot.textContent = code === 0 ? 'A' : String(code);
             onActivate(dot, () => setValue(unitId, 'control.fanSpeed', code));
             fanDots.appendChild(dot);
         }

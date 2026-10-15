@@ -142,6 +142,7 @@ MELCloud and Mitsubishi Electric are trademarks of their respective owners. Use 
 * (Sven-83) instance settings check the e-mail address and require the password
 * (Sven-83) Node.js 22 or newer required
 * (Sven-83) documentation: requirements, states, security notes; SECURITY.md for private vulnerability reports
+* (Sven-83) dashboard: larger touch-sized buttons, filled active buttons for contrast, clearer vane icons, fan speeds as numbers
 
 ## License
 MIT License

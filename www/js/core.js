@@ -245,11 +245,13 @@
         const slices = angles.map(d => pieSlicePoint(d, cx, cy, r));
         let out = '';
         for (let i = 0; i < 5; i++) {
-            const color = i + 1 === idx ? 'currentColor' : '#4a5c45';
+            // colours come from the stylesheet: inactive slices faint, the active one solid
+            const cls = i + 1 === idx ? 'slice on' : 'slice';
             const a = slices[i];
             const b = slices[i + 1];
-            out += `<path d="M${cx},${cy} L${a.x.toFixed(2)},${a.y.toFixed(2)} A${r},${r} 0 0 1 ${b.x.toFixed(2)},${b.y.toFixed(2)} Z" fill="${color}" stroke="#101a14" stroke-width="1"/>`;
+            out += `<path class="${cls}" d="M${cx},${cy} L${a.x.toFixed(2)},${a.y.toFixed(2)} A${r},${r} 0 0 1 ${b.x.toFixed(2)},${b.y.toFixed(2)} Z"/>`;
         }
+        out += `<circle class="pivot" cx="${cx}" cy="${cy}" r="2.2"/>`;
         return `<svg viewBox="0 0 24 24" fill="none">${out}</svg>`;
     }
 

@@ -129,7 +129,8 @@ describe('dashboard core', () => {
         expect(core.vaneIconSvg('h', 12)).to.include('Q12 4 20 15');
         expect(core.vaneIconSvg('v', 7)).to.include('rotate(-90 12 12)');
         expect(core.vaneIconSvg('h', 1)).to.not.equal(core.vaneIconSvg('v', 1));
-        expect(core.vaneIconSvg('h', 3).match(/currentColor/g)).to.have.length(1);
+        expect(core.vaneIconSvg('h', 3).match(/class="slice on"/g)).to.have.length(1);
+        expect(core.vaneIconSvg('h', 3).match(/class="slice/g)).to.have.length(5);
         expect(core.vaneLabel('de', 'h', 3)).to.equal('Position 3');
     });
 
