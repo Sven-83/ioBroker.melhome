@@ -19,6 +19,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var ata_exports = {};
 __export(ata_exports, {
   AtaDevices: () => AtaDevices,
+  DEFERRED_COMMAND_MAX_AGE_MS: () => DEFERRED_COMMAND_MAX_AGE_MS,
   OPTIMISTIC_GUARD_MS: () => OPTIMISTIC_GUARD_MS,
   SWING_RETRY_MAX: () => SWING_RETRY_MAX,
   SWING_RETRY_WINDOW_MS: () => SWING_RETRY_WINDOW_MS,
@@ -33,6 +34,7 @@ var import_off_timer = require("./off-timer");
 const OPTIMISTIC_GUARD_MS = 12e4;
 const SWING_RETRY_WINDOW_MS = 30 * 6e4;
 const SWING_RETRY_MAX = 3;
+const DEFERRED_COMMAND_MAX_AGE_MS = 5 * 6e4;
 const VANE_AXES = {
   vaneHorizontalDirection: { swing: 12, label: "horizontal" },
   vaneVerticalDirection: { swing: 7, label: "vertical" }
@@ -295,6 +297,8 @@ class AtaDevices {
   missingLogged = /* @__PURE__ */ new Set();
   /** "<unit id>.<vane field>" -> requested swing */
   swingWishes = /* @__PURE__ */ new Map();
+  /** full state id -> command received before the unit was known */
+  deferred = /* @__PURE__ */ new Map();
   /** @param options - Dependencies */
   constructor(options) {
     var _a;
@@ -348,11 +352,29 @@ class AtaDevices {
       await this.timers.restore(unitId, end);
     }
   }
+  /**
+   * Picks up commands written while the adapter was not running (call once at startup, after restoreTimers).
+   * Recent ones run as soon as their unit is known, older ones are discarded.
+   */
+  async collectPendingCommands() {
+    const states = await this.port.getStates(`${ROOT}.*.control.*`);
+    for (const [fullId, state] of Object.entries(states)) {
+      if (!state || state.ack !== false) {
+        continue;
+      }
+      if (this.commandAge(state) <= DEFERRED_COMMAND_MAX_AGE_MS) {
+        this.deferred.set(fullId, state);
+      } else {
+        await this.discardCommand(fullId, state);
+      }
+    }
+  }
   /** Stops timers and drops pending commands */
   stop() {
     this.queue.stop();
     this.timers.stop();
     this.swingWishes.clear();
+    this.deferred.clear();
   }
   /**
    * Processes a fresh /context.
@@ -383,6 +405,61 @@ class AtaDevices {
         this.missingLogged.delete(unitId);
       }
     }
+    await this.runDeferred();
+  }
+  /** Executes deferred commands whose unit is known now, discards those that became too old */
+  async runDeferred() {
+    const prefix = `${this.port.namespace}.${ROOT}.`;
+    for (const [id, state] of [...this.deferred]) {
+      const [key, , field] = id.slice(prefix.length).split(".");
+      const unitId = this.keys.get(key);
+      const unit = unitId ? this.units.get(unitId) : void 0;
+      const age = this.commandAge(state);
+      if (age > DEFERRED_COMMAND_MAX_AGE_MS) {
+        this.deferred.delete(id);
+        await this.discardCommand(id, state);
+        continue;
+      }
+      if (!unit) {
+        continue;
+      }
+      this.deferred.delete(id);
+      let val = state.val;
+      if (field === "offTimer" && typeof val === "number" && val > 0) {
+        val = Math.max(1, Math.round(val - age / 6e4));
+      }
+      this.log.info(`Executing ${field} = ${String(val)} for ${unit.name}, received during adapter start`);
+      await this.handleCommand(id, { ...state, val });
+    }
+  }
+  /**
+   * Age of a command in ms.
+   *
+   * @param state - Command state
+   */
+  commandAge(state) {
+    return Math.max(0, this.now() - (Number.isFinite(state.ts) ? state.ts : this.now()));
+  }
+  /**
+   * Drops a command that is too old to be executed and acknowledges the current value instead.
+   *
+   * @param id - Full state id
+   * @param state - Command state
+   */
+  async discardCommand(id, state) {
+    const prefix = `${this.port.namespace}.${ROOT}.`;
+    const [key, , field] = id.slice(prefix.length).split(".");
+    const unitId = this.keys.get(key);
+    this.log.info(
+      `Command ${field} = ${String(state.val)} from ${Math.round(this.commandAge(state) / 6e4)} min ago discarded - unit was not available in time`
+    );
+    const relative = `${ROOT}.${key}.control.${field}`;
+    const unit = unitId ? this.units.get(unitId) : void 0;
+    if (field === "offTimer") {
+      await this.write(relative, unitId ? Math.ceil(this.timers.remaining(unitId) / 60) : 0, true);
+    } else if (unit) {
+      await this.restore(unit, field);
+    }
   }
   /**
    * Handles a state change with ack=false below devices.*.control.
@@ -396,19 +473,20 @@ class AtaDevices {
       return;
     }
     const [key, channel, field] = id.slice(prefix.length).split(".");
+    if (channel !== "control") {
+      return;
+    }
     const unitId = this.keys.get(key);
     const unit = unitId ? this.units.get(unitId) : void 0;
-    if (channel !== "control" || !unitId) {
+    if (!unitId || !unit) {
+      this.deferred.set(id, state);
+      this.log.debug(`Command ${field} deferred until the unit is known`);
       return;
     }
     const relative = `${ROOT}.${key}.control.${field}`;
     this.written.delete(relative);
     if (field === "offTimer") {
       await this.handleOffTimer(unitId, relative, state.val);
-      return;
-    }
-    if (!unit) {
-      this.log.warn(`Command ${field} ignored - unit state not known yet`);
       return;
     }
     const request = this.toRequest(unit, field, state.val);
@@ -766,6 +844,7 @@ function escapeRegExp(text) {
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AtaDevices,
+  DEFERRED_COMMAND_MAX_AGE_MS,
   OPTIMISTIC_GUARD_MS,
   SWING_RETRY_MAX,
   SWING_RETRY_WINDOW_MS,

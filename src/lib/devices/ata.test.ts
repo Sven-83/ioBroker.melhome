@@ -2,7 +2,13 @@ import { expect } from 'chai';
 import { FakePort } from '../../../test/helpers/fake-adapter';
 import { CaptureLog, ManualScheduler, fixture } from '../../../test/helpers/fake-cloud';
 import { parseUserContext, type AtaControlRequest, type UserContext } from '../api/types';
-import { AtaDevices, OPTIMISTIC_GUARD_MS, SWING_RETRY_MAX, SWING_RETRY_WINDOW_MS } from './ata';
+import {
+    AtaDevices,
+    DEFERRED_COMMAND_MAX_AGE_MS,
+    OPTIMISTIC_GUARD_MS,
+    SWING_RETRY_MAX,
+    SWING_RETRY_WINDOW_MS,
+} from './ata';
 
 const LIVING = '00000000-0000-4000-8000-000000000006';
 const SECOND = '00000000-0000-4000-8000-000000000008';
@@ -43,6 +49,7 @@ function setup(roomIcons?: Record<string, string>): {
     refreshes: number;
     advance: (ms: number) => void;
     failNext: () => void;
+    command: (id: string, val: ioBroker.StateValue) => [string, ioBroker.State];
 } {
     let clock = Date.UTC(2026, 9, 12, 20);
     let fail = false;
@@ -90,6 +97,13 @@ function setup(roomIcons?: Record<string, string>): {
         },
         failNext: () => {
             fail = true;
+        },
+        // user write stamped with the test clock (userWrite uses the real time)
+        command: (id, val) => {
+            const [fullId, state] = port.userWrite(id, val);
+            state.ts = clock;
+            state.lc = clock;
+            return [fullId, state];
         },
     };
 }
@@ -483,6 +497,57 @@ describe('devices/ata', () => {
             await env.devices.handleCommand(...env.port.userWrite(`${L}.control.offTimer`, -5));
             expect(env.port.val(`${L}.control.offTimer`)).to.equal(0);
             expect(env.port.ack(`${L}.control.offTimer`)).to.equal(true);
+        });
+    });
+
+    describe('commands during adapter start', () => {
+        it('runs a timer received before the first /context, counted from the moment it was set', async () => {
+            const env = setup();
+            await env.devices.handleCommand(...env.command(`${L}.control.offTimer`, 15));
+            expect(env.port.ack(`${L}.control.offTimer`)).to.equal(false);
+            env.advance(2 * 60_000);
+            await env.devices.update(liveContext());
+            expect(env.port.val(`${L}.control.offTimer`)).to.equal(13);
+            expect(env.port.ack(`${L}.control.offTimer`)).to.equal(true);
+            expect(env.port.val(`${L}.control.offTimerRemaining`)).to.equal(13 * 60);
+            expect(env.log.at('info').join('\n')).to.include('received during adapter start');
+        });
+
+        it('sends other commands once the unit is known', async () => {
+            const env = setup();
+            await env.devices.handleCommand(...env.command(`${L}.control.power`, false));
+            expect(env.scheduler.pending).to.have.length(0);
+            await env.devices.update(withLiving({ power: true }));
+            await env.scheduler.run(800);
+            expect(env.sent).to.deep.equal([{ unitId: LIVING, request: { power: false } }]);
+        });
+
+        it('picks up recent commands written while the adapter was stopped', async () => {
+            const env = setup();
+            env.command(`${L}.control.offTimer`, 30);
+            env.advance(60_000);
+            await env.devices.collectPendingCommands();
+            await env.devices.update(liveContext());
+            expect(env.port.val(`${L}.control.offTimer`)).to.equal(29);
+            expect(env.port.ack(`${L}.control.offTimer`)).to.equal(true);
+        });
+
+        it('discards commands older than the limit and acknowledges the timer as off', async () => {
+            const env = setup();
+            env.command(`${L}.control.offTimer`, 15);
+            env.advance(DEFERRED_COMMAND_MAX_AGE_MS + 1);
+            await env.devices.collectPendingCommands();
+            expect(env.port.val(`${L}.control.offTimer`)).to.equal(0);
+            expect(env.port.ack(`${L}.control.offTimer`)).to.equal(true);
+            expect(env.log.at('info').join('\n')).to.include('discarded');
+
+            const late = setup();
+            await late.devices.handleCommand(...late.command(`${L}.control.power`, false));
+            late.advance(DEFERRED_COMMAND_MAX_AGE_MS + 1);
+            await late.devices.update(withLiving({ power: true }));
+            expect(late.scheduler.pending).to.have.length(0);
+            expect(late.sent).to.deep.equal([]);
+            expect(late.port.val(`${L}.control.power`)).to.equal(true);
         });
     });
 

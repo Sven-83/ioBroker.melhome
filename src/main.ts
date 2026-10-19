@@ -91,6 +91,7 @@ class Melhome extends utils.Adapter {
             ),
         });
         await this.devices.restoreTimers();
+        await this.devices.collectPendingCommands();
 
         this.telemetry = new TelemetryPoller({ source: client, sink: this.devices, scheduler, log: this.log });
 
