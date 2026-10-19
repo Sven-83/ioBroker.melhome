@@ -80,16 +80,17 @@ describe('dashboard core', () => {
         expect(core.formatCountdown(3_725_000)).to.equal('1:02:05');
     });
 
-    it('turns the timer wheel: one turn is 60 minutes, limited to 0...360', () => {
-        expect(core.rotateTimer(0, 0, 90)).to.equal(15);
-        expect(core.rotateTimer(10, 170, -170)).to.be.closeTo(13.33, 0.01); // across 180°
-        expect(core.rotateTimer(5, 90, 0)).to.equal(0);
-        expect(core.rotateTimer(358, 0, 90)).to.equal(360);
+    it('steps the timer on the 15-minute grid, limited to 0...360', () => {
+        expect(core.stepTimer(0, 1)).to.equal(15);
+        expect(core.stepTimer(15, -1)).to.equal(0);
+        expect(core.stepTimer(0, -1)).to.equal(0);
+        expect(core.stepTimer(360, 1)).to.equal(360);
+        expect(core.stepTimer(20, 1)).to.equal(30); // off-grid snaps up
+        expect(core.stepTimer(20, -1)).to.equal(15); // off-grid snaps down
+        expect(core.TIMER_PRESETS.every((m: number) => m > 0 && m <= core.TIMER_MAX_MIN)).to.equal(true);
         expect(core.confirmedTimerMinutes(32.4)).to.equal(32);
-        expect(core.confirmedTimerMinutes(1.2)).to.equal(1); // shown as "1 Min"
         expect(core.confirmedTimerMinutes(0.4)).to.equal(0);
-        expect(core.angleDeg(0, 0, 0, -1)).to.equal(0);
-        expect(core.angleDeg(0, 0, 1, 0)).to.equal(90);
+        expect(core.confirmedTimerMinutes(400)).to.equal(360);
     });
 
     it('shows reachability before power', () => {

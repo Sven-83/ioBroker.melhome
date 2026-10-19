@@ -32,7 +32,8 @@
             modeConflictHint:
                 'Multi-Split: Heizen und Kühlen/Trocknen gehen nicht gleichzeitig – ein Gerät bleibt stehen',
             timer: 'Abschalt-Timer',
-            timerHint: 'Rad drehen, dann Mitte antippen',
+            timerHint: 'Dauer wählen, dann Starten',
+            timerStart: 'Starten',
             timerCancel: 'Timer beenden',
             offIn: 'aus in',
             off: 'Aus',
@@ -67,7 +68,8 @@
             modeConflictHint:
                 'Multi-split: heating and cooling/drying cannot run at the same time - one unit stands still',
             timer: 'Off timer',
-            timerHint: 'Turn the wheel, then tap the centre',
+            timerHint: 'Choose a duration, then Start',
+            timerStart: 'Start',
             timerCancel: 'Cancel timer',
             offIn: 'off in',
             off: 'Off',
@@ -389,7 +391,7 @@
     }
 
     /**
-     * Timer wheel value, e.g. "1 Std 30 Min".
+     * Timer duration, e.g. "1 Std 30 Min".
      *
      * @param {'de'|'en'} lang - Language
      * @param {number} minutes - Selected minutes
@@ -423,44 +425,30 @@
         return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
     }
 
-    /**
-     * Angle of a point around a centre: 0° = 12 o'clock, clockwise positive (like CSS rotate).
-     *
-     * @param {number} cx - Centre x
-     * @param {number} cy - Centre y
-     * @param {number} x - Point x
-     * @param {number} y - Point y
-     * @returns {number}
-     */
-    function angleDeg(cx, cy, x, y) {
-        return (Math.atan2(x - cx, -(y - cy)) * 180) / Math.PI;
-    }
-
     const TIMER_MAX_MIN = 360;
+    const TIMER_STEP_MIN = 15;
+    const TIMER_PRESETS = [30, 60, 120, 180, 240, 360];
 
     /**
-     * Wheel rotation applied to the selected minutes (one turn = 60 min, 0...360).
+     * One step of the timer stepper: snaps to the 15-minute grid, limited to 0...360.
      *
      * @param {number} minutes - Current selection
-     * @param {number} lastAngle - Previous pointer angle
-     * @param {number} angle - Current pointer angle
+     * @param {number} delta - +1 or -1
      * @returns {number}
      */
-    function rotateTimer(minutes, lastAngle, angle) {
-        let delta = angle - lastAngle;
-        if (delta > 180) {
-            delta -= 360;
-        }
-        if (delta < -180) {
-            delta += 360;
-        }
-        return Math.min(TIMER_MAX_MIN, Math.max(0, minutes + delta / 6));
+    function stepTimer(minutes, delta) {
+        const current = Math.min(TIMER_MAX_MIN, Math.max(0, Number(minutes) || 0));
+        const next =
+            delta > 0
+                ? (Math.floor(current / TIMER_STEP_MIN) + 1) * TIMER_STEP_MIN
+                : (Math.ceil(current / TIMER_STEP_MIN) - 1) * TIMER_STEP_MIN;
+        return Math.min(TIMER_MAX_MIN, Math.max(0, next));
     }
 
     /**
-     * Minutes sent when the wheel is confirmed: the whole minutes the wheel shows.
+     * Minutes sent when the timer is started: whole minutes, limited to 0...360.
      *
-     * @param {number} minutes - Wheel selection
+     * @param {number} minutes - Selection
      * @returns {number}
      */
     function confirmedTimerMinutes(minutes) {
@@ -567,6 +555,8 @@
         MODE_ICONS,
         ROOM_ICONS,
         TIMER_MAX_MIN,
+        TIMER_STEP_MIN,
+        TIMER_PRESETS,
         pickLanguage,
         t,
         roomIconSvg,
@@ -581,8 +571,7 @@
         formatTemperature,
         formatMinutes,
         formatCountdown,
-        angleDeg,
-        rotateTimer,
+        stepTimer,
         confirmedTimerMinutes,
         statusKey,
         modeConflicts,

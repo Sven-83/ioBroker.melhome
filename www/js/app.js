@@ -173,14 +173,6 @@
         });
     }
 
-    function tick(count) {
-        let out = '';
-        for (let i = 0; i < count; i++) {
-            out += `<div class="tw-tick" style="transform:rotate(${i * 30}deg)"></div>`;
-        }
-        return out;
-    }
-
     /** Card skeleton - constant markup only, texts and data are filled in afterwards */
     function createCard() {
         const element = document.createElement('div');
@@ -223,15 +215,15 @@
     <div class="subrow row-vane-h"><span class="lbl"></span><div class="vane-icons"></div></div>
     <div class="subrow row-vane-v"><span class="lbl"></span><div class="vane-icons"></div></div>
     <div class="timer-overlay">
+      <div class="timer-title"></div>
       <div class="timer-close" role="button" tabindex="0">✕</div>
-      <div class="timer-wheel">
-        <div class="tw-ticks">${tick(12)}</div>
-        <div class="tw-needle"></div>
-        <div class="tw-hub" role="button" tabindex="0">
-          <div class="tw-value"></div>
-          <div class="tw-ok">OK</div>
-        </div>
+      <div class="timer-presets"></div>
+      <div class="timer-stepper">
+        <div class="step-btn" data-delta="-1" role="button" tabindex="0">–</div>
+        <div class="timer-value"></div>
+        <div class="step-btn" data-delta="1" role="button" tabindex="0">+</div>
       </div>
+      <div class="timer-start" role="button" tabindex="0"></div>
       <div class="timer-hint"></div>
     </div>`;
         return element;
@@ -315,7 +307,7 @@
             setValue(unitId, 'control.power', value(unitId, 'control.power') !== true),
         );
 
-        for (const button of ctx.element.querySelectorAll('.step-btn')) {
+        for (const button of ctx.element.querySelectorAll('.temp-steppers .step-btn')) {
             onActivate(button, () => {
                 const range = rangeOf(unitId);
                 const current = pendingTarget.has(unitId)
@@ -340,60 +332,58 @@
     function setupTimer(ctx) {
         const { q, unitId } = ctx;
         const overlay = q('.timer-overlay');
-        const wheel = q('.timer-wheel');
-        const hub = q('.tw-hub');
+        const start = q('.timer-start');
+        q('.timer-title').textContent = C.t(lang, 'timer');
+        start.textContent = C.t(lang, 'timerStart');
 
-        const renderWheel = () => {
-            q('.tw-needle').style.transform = `rotate(${(ctx.timerMinutes % 60) * 6}deg)`;
-            q('.tw-value').textContent = C.formatMinutes(lang, ctx.timerMinutes);
+        // redrawn only on a tap - no continuous updates while selecting
+        const renderTimer = () => {
+            q('.timer-value').textContent = C.formatMinutes(lang, ctx.timerMinutes);
+            for (const button of overlay.querySelectorAll('.timer-preset')) {
+                button.classList.toggle('active', Number(button.dataset.minutes) === ctx.timerMinutes);
+            }
+            start.classList.toggle('disabled', ctx.timerMinutes <= 0);
         };
+
+        const presets = q('.timer-presets');
+        for (const minutes of C.TIMER_PRESETS) {
+            const button = document.createElement('div');
+            button.className = 'timer-preset';
+            button.dataset.minutes = String(minutes);
+            button.setAttribute('role', 'button');
+            button.tabIndex = 0;
+            button.textContent = C.formatMinutes(lang, minutes);
+            onActivate(button, () => {
+                ctx.timerMinutes = minutes;
+                renderTimer();
+            });
+            presets.appendChild(button);
+        }
+        for (const button of overlay.querySelectorAll('.timer-stepper .step-btn')) {
+            onActivate(button, () => {
+                ctx.timerMinutes = C.stepTimer(ctx.timerMinutes, Number(button.dataset.delta));
+                renderTimer();
+            });
+        }
 
         onActivate(q('.timer-btn'), () => {
             ctx.timerMinutes = 0;
-            renderWheel();
+            renderTimer();
             overlay.classList.add('show');
         });
         onActivate(q('.timer-close'), () => overlay.classList.remove('show'));
         onActivate(q('.countdown-badge'), () => setValue(unitId, 'control.offTimer', 0));
 
-        let dragging = false;
-        let lastAngle = 0;
-        const angleOf = event => {
-            const r = wheel.getBoundingClientRect();
-            return C.angleDeg(r.left + r.width / 2, r.top + r.height / 2, event.clientX, event.clientY);
-        };
-        wheel.addEventListener('pointerdown', event => {
-            if (hub.contains(event.target)) {
-                return;
-            }
-            dragging = true;
-            wheel.setPointerCapture(event.pointerId);
-            lastAngle = angleOf(event);
-        });
-        wheel.addEventListener('pointermove', event => {
-            if (!dragging) {
-                return;
-            }
-            const angle = angleOf(event);
-            ctx.timerMinutes = C.rotateTimer(ctx.timerMinutes, lastAngle, angle);
-            lastAngle = angle;
-            renderWheel();
-        });
-        const endDrag = () => {
-            dragging = false;
-        };
-        wheel.addEventListener('pointerup', endDrag);
-        wheel.addEventListener('pointercancel', endDrag);
-
-        onActivate(hub, () => {
+        onActivate(start, () => {
             const minutes = C.confirmedTimerMinutes(ctx.timerMinutes);
-            overlay.classList.remove('show');
-            if (minutes > 0) {
-                if (value(unitId, 'control.power') !== true) {
-                    setValue(unitId, 'control.power', true);
-                }
-                setValue(unitId, 'control.offTimer', minutes);
+            if (minutes <= 0) {
+                return;
             }
+            overlay.classList.remove('show');
+            if (value(unitId, 'control.power') !== true) {
+                setValue(unitId, 'control.power', true);
+            }
+            setValue(unitId, 'control.offTimer', minutes);
         });
     }
 

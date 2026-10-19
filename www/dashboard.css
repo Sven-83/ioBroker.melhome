@@ -1,6 +1,6 @@
 /*
  * MELCloud Home dashboard - "Jäger" design.
- * Colours, dial, mode buttons, vane icons and timer wheel based on the reference dashboard,
+ * Colours, dial, mode buttons and vane icons based on the reference dashboard, timer as quick-select tiles,
  * enlarged for touch use (buttons at least 44 px, active buttons filled for contrast).
  * Fonts: Fraunces and Work Sans (SIL OFL 1.1, see fonts/).
  */
@@ -397,7 +397,7 @@ footer{
   white-space:nowrap;
 }
 
-/* timer wheel overlay */
+/* timer overlay */
 .timer-overlay{
   display:none;
   position:absolute;inset:0;
@@ -423,64 +423,71 @@ footer{
   display:flex;align-items:center;justify-content:center;
 }
 .timer-close:active{background:#233420;}
-.timer-wheel{
-  position:relative;
-  width:200px;height:200px;
-  border-radius:50%;
-  background:radial-gradient(circle at 50% 50%, #1c2e21 0%, #14201799 70%);
-  border:1px solid var(--border-brass-lit);
-  touch-action:none;
-  user-select:none;
-  flex-shrink:0;
-}
-.tw-ticks{position:absolute;inset:0;}
-.tw-tick{
-  position:absolute;
-  top:8px;left:calc(50% - 1.5px);
-  width:3px;height:12px;
-  background:var(--border-brass-lit);
-  transform-origin:50% 91px;
-  border-radius:1px;
-}
-.tw-needle{
-  position:absolute;
-  width:3px;height:76px;
-  background:var(--amber-bright);
-  top:23px;left:calc(50% - 1.5px);
-  transform-origin:50% 76px;
-  border-radius:2px;
-  box-shadow:0 0 6px var(--amber-bright);
-  pointer-events:none;
-}
-.tw-hub{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:116px;height:116px;
-  border-radius:50%;
-  background:#101c14;
-  border:2px solid var(--amber);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;
-  z-index:3;
-}
-.tw-hub:active{background:#1a2a1c;}
-.tw-value{
+.timer-title{
+  position:absolute;top:22px;left:18px;
   font-family:'Fraunces',serif;
   font-size:20px;
-  line-height:1.15;
-  text-align:center;
-  padding:0 6px;
+  color:var(--text-parchment);
 }
-.tw-ok{
-  font-size:15px;
+/* quick selection tiles: one tap = one redraw */
+.timer-presets{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+  width:100%;
+  max-width:380px;
+}
+.timer-preset{
+  height:52px;
+  border-radius:10px;
+  border:2px solid var(--border-button);
+  background:var(--bg-button);
+  color:var(--text-parchment);
+  font-size:17px;
   font-weight:600;
-  letter-spacing:.14em;
-  color:var(--on-accent);
+  white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  user-select:none;
+}
+.timer-preset.active{
+  border-color:var(--amber-bright);
   background:var(--amber-bright);
-  border-radius:6px;
-  padding:3px 12px;
-  margin-top:6px;
+  color:var(--on-accent);
+}
+.timer-stepper{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.timer-value{
+  font-family:'Fraunces',serif;
+  font-size:26px;
+  font-variant-numeric:tabular-nums;
+  min-width:170px;
+  text-align:center;
+}
+.timer-start{
+  min-width:180px;height:52px;
+  padding:0 24px;
+  border-radius:10px;
+  border:2px solid var(--amber-bright);
+  background:var(--amber-bright);
+  color:var(--on-accent);
+  font-size:17px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  user-select:none;
+}
+.timer-start:active{background:var(--amber);border-color:var(--amber);}
+.timer-start.disabled{
+  background:transparent;
+  border-color:var(--border-button);
+  color:var(--text-dim);
+  cursor:default;
 }
 .timer-hint{
   font-size:13px;
@@ -505,7 +512,8 @@ button.reset {
     padding: 0;
     margin: 0;
 }
-.power-toggle, .timer-btn, .step-btn, .mode-btn, .fan-dot, .vane-btn, .timer-close, .countdown-badge {
+.power-toggle, .timer-btn, .step-btn, .mode-btn, .fan-dot, .vane-btn, .timer-close, .countdown-badge,
+.timer-preset, .timer-start {
     -webkit-tap-highlight-color: transparent;
 }
 .subrow.row-hidden {
